@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenClaw Config Validator</title>
+  <style>
+    :root { --bg: #0f0f0f; --card: #1a1a1a; --accent: #4ade80; --error: #f87171; --fg: #f0f0f0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--fg); min-height: 100vh; padding: 2rem; }
+    .container { max-width: 900px; margin: 0 auto; }
+    h1 { font-size: 2rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .subtitle { color: #888; margin-bottom: 2rem; }
+    .editor-container { display: grid; gap: 1rem; }
+    @media (min-width: 768px) { .editor-container { grid-template-columns: 1fr 1fr; } }
+    .panel { background: var(--card); border-radius: 12px; padding: 1rem; }
+    .panel h2 { font-size: 1rem; color: #888; margin-bottom: 0.5rem; }
+    textarea { width: 100%; height: 400px; background: #000; border: 1px solid #333; border-radius: 8px; color: var(--fg); font-family: 'SF Mono', Monaco, monospace; font-size: 13px; padding: 1rem; resize: vertical; }
+    textarea:focus { outline: none; border-color: var(--accent); }
+    .results { padding: 1rem; background: #000; border-radius: 8px; min-height: 400px; overflow: auto; }
+    .success { color: var(--accent); }
+    .error { color: var(--error); }
+    .warning { color: #fbbf24; }
+    .item { padding: 0.5rem 0; border-bottom: 1px solid #222; }
+    .item:last-child { border-bottom: none; }
+    .btn { background: var(--accent); color: #000; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 1rem; }
+    .btn:hover { opacity: 0.9; }
+    .footer { margin-top: 2rem; text-align: center; color: #666; font-size: 0.9rem; }
+    .footer a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🦞 OpenClaw Config Validator</h1>
+    <p class="subtitle">Paste your openclaw.json to check for common issues</p>
+    
+    <div class="editor-container">
+      <div class="panel">
+        <h2>Your Config</h2>
+        <textarea id="config" placeholder='Paste your openclaw.json here...'></textarea>
+        <button class="btn" onclick="validate()">Validate</button>
+      </div>
+      
+      <div class="panel">
+        <h2>Results</h2>
+        <div class="results" id="results">
+          <p style="color: #666;">Paste your config and click Validate</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer">
+      Built by <a href="https://primal.net/p/npub1t9v3eu5xnf3rn32vq0335k26r27kgs6rcns5x933v5pnt4jzgyhszcthry">Seafloor 🦞</a> • 
+      Running on <a href="https://openclaw.ai">OpenClaw</a>
+    </div>
+  </div>
+  
+  <script>
+    function validate() {
+      const input = document.getElementById('config').value;
+      const results = document.getElementById('results');
+      const issues = [];
+      const warnings = [];
+      const successes = [];
+      
+      // Try to parse JSON
+      let config;
+      try {
+        config = JSON.parse(input);
+        successes.push('✓ Valid JSON');
+      } catch (e) {
+        results.innerHTML = `<div class="error">❌ Invalid JSON: ${e.message}</div>`;
+        return;
+      }
+      
+      // Check required fields
+      if (!config.agents) {
+        issues.push('Missing "agents" section');
+      } else {
+        successes.push('✓ Has agents section');
+        
+        if (!config.agents.defaults?.model) {
+          warnings.push('No default model set in agents.defaults.model');
+        } else {
+          successes.push(`✓ Default model: ${config.agents.defaults.model}`);
+        }
+      }
+      
+      // Check channels
+      const channelTypes = ['telegram', 'discord', 'whatsapp', 'signal', 'slack'];
+      const configuredChannels = [];
+      
+      if (config.channels) {
+        channelTypes.forEach(ch => {
+          if (config.channels[ch]) {
+            configuredChannels.push(ch);
+          }
+        });
+        
+        if (configuredChannels.length > 0) {
+          successes.push(`✓ Channels: ${configuredChannels.join(', ')}`);
+        } else {
+          warnings.push('No messaging channels configured');
+        }
+      } else {
+        warnings.push('No channels section - bot won\'t receive messages');
+      }
+      
+      // Check for common issues
+      if (config.channels?.telegram) {
+        const tg = config.channels.telegram;
+        if (!tg.botToken) issues.push('Telegram: missing botToken');
+        if (!tg.userId && !tg.adminUserId) warnings.push('Telegram: no userId/adminUserId - anyone can message your bot');
+      }
+      
+      if (config.channels?.discord) {
+        const dc = config.channels.discord;
+        if (!dc.botToken) issues.push('Discord: missing botToken');
+        if (!dc.adminUserId) warnings.push('Discord: no adminUserId set');
+      }
+      
+      // Check models
+      if (config.models) {
+        const providers = Object.keys(config.models);
+        successes.push(`✓ Model providers: ${providers.join(', ')}`);
+      } else if (!config.agents?.defaults?.model?.includes('/')) {
+        warnings.push('No models section and default model doesn\'t include provider');
+      }
+      
+      // Check workspace
+      if (config.workspace?.base) {
+        successes.push(`✓ Workspace: ${config.workspace.base}`);
+      }
+      
+      // Build output
+      let html = '';
+      
+      if (issues.length === 0 && warnings.length === 0) {
+        html += '<div class="success" style="font-size: 1.2rem; margin-bottom: 1rem;">✅ Config looks good!</div>';
+      }
+      
+      if (issues.length > 0) {
+        html += '<div style="margin-bottom: 1rem;"><strong class="error">Errors:</strong>';
+        issues.forEach(i => html += `<div class="item error">❌ ${i}</div>`);
+        html += '</div>';
+      }
+      
+      if (warnings.length > 0) {
+        html += '<div style="margin-bottom: 1rem;"><strong class="warning">Warnings:</strong>';
+        warnings.forEach(w => html += `<div class="item warning">⚠️ ${w}</div>`);
+        html += '</div>';
+      }
+      
+      if (successes.length > 0) {
+        html += '<div><strong class="success">Passed:</strong>';
+        successes.forEach(s => html += `<div class="item success">${s}</div>`);
+        html += '</div>';
+      }
+      
+      results.innerHTML = html;
+    }
+  </script>
+</body>
+</html>
