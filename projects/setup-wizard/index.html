@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenClaw Setup Wizard</title>
+  <style>
+    :root { --bg: #0f0f0f; --card: #1a1a1a; --accent: #60a5fa; --fg: #f0f0f0; --success: #4ade80; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--fg); min-height: 100vh; padding: 2rem; }
+    .container { max-width: 700px; margin: 0 auto; }
+    h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .subtitle { color: #888; margin-bottom: 2rem; }
+    .card { background: var(--card); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    h2 { font-size: 1.2rem; margin-bottom: 1rem; color: var(--accent); }
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; margin-bottom: 0.5rem; color: #ccc; }
+    input, select { width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #333; background: #000; color: var(--fg); font-size: 1rem; }
+    input:focus, select:focus { outline: none; border-color: var(--accent); }
+    .checkbox-group { display: flex; flex-wrap: wrap; gap: 1rem; }
+    .checkbox-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: #000; border-radius: 8px; cursor: pointer; border: 1px solid #333; }
+    .checkbox-item:has(input:checked) { border-color: var(--accent); background: #1e3a5f; }
+    .checkbox-item input { width: auto; }
+    .btn { background: var(--accent); color: #000; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 1rem; font-size: 1rem; }
+    .btn:hover { opacity: 0.9; }
+    .output { display: none; }
+    .output.visible { display: block; }
+    pre { background: #000; padding: 1rem; border-radius: 8px; overflow-x: auto; font-family: 'SF Mono', Monaco, monospace; font-size: 13px; }
+    .copy-btn { background: var(--success); margin-left: 1rem; }
+    .step { display: none; }
+    .step.active { display: block; }
+    .progress { display: flex; gap: 0.5rem; margin-bottom: 2rem; }
+    .progress-dot { width: 12px; height: 12px; border-radius: 50%; background: #333; }
+    .progress-dot.active { background: var(--accent); }
+    .progress-dot.done { background: var(--success); }
+    .nav-buttons { display: flex; gap: 1rem; margin-top: 1.5rem; }
+    .btn-secondary { background: #333; color: var(--fg); }
+    .footer { margin-top: 2rem; text-align: center; color: #666; font-size: 0.9rem; }
+    .footer a { color: var(--accent); text-decoration: none; }
+    .help { font-size: 0.85rem; color: #888; margin-top: 0.25rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🦞 OpenClaw Setup Wizard</h1>
+    <p class="subtitle">Generate a working config in 2 minutes</p>
+    
+    <div class="progress">
+      <div class="progress-dot active" id="dot1"></div>
+      <div class="progress-dot" id="dot2"></div>
+      <div class="progress-dot" id="dot3"></div>
+      <div class="progress-dot" id="dot4"></div>
+    </div>
+
+    <div class="step active" id="step1">
+      <div class="card">
+        <h2>Step 1: Choose Your AI Model</h2>
+        <div class="form-group">
+          <label>Model Provider</label>
+          <select id="provider">
+            <option value="anthropic">Anthropic (Claude) - Recommended</option>
+            <option value="openai">OpenAI (GPT-4)</option>
+            <option value="google">Google (Gemini)</option>
+            <option value="openrouter">OpenRouter (Multiple models)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>API Key</label>
+          <input type="password" id="apiKey" placeholder="sk-... or your API key">
+          <p class="help">Get one from your provider's dashboard</p>
+        </div>
+        <div class="nav-buttons">
+          <button class="btn" onclick="nextStep()">Next →</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" id="step2">
+      <div class="card">
+        <h2>Step 2: Choose Messaging Channel</h2>
+        <div class="form-group">
+          <label>Primary Channel</label>
+          <select id="channel" onchange="updateChannelFields()">
+            <option value="telegram">Telegram - Easiest to set up</option>
+            <option value="discord">Discord</option>
+            <option value="none">None (CLI only)</option>
+          </select>
+        </div>
+        <div id="telegramFields">
+          <div class="form-group">
+            <label>Bot Token</label>
+            <input type="password" id="tgToken" placeholder="123456:ABC-DEF...">
+            <p class="help">Get from @BotFather on Telegram</p>
+          </div>
+          <div class="form-group">
+            <label>Your Telegram User ID</label>
+            <input type="text" id="tgUserId" placeholder="123456789">
+            <p class="help">Get from @userinfobot on Telegram</p>
+          </div>
+        </div>
+        <div id="discordFields" style="display: none;">
+          <div class="form-group">
+            <label>Bot Token</label>
+            <input type="password" id="dcToken" placeholder="Discord bot token">
+            <p class="help">Get from Discord Developer Portal</p>
+          </div>
+          <div class="form-group">
+            <label>Your Discord User ID</label>
+            <input type="text" id="dcUserId" placeholder="123456789012345678">
+            <p class="help">Enable Developer Mode, right-click yourself</p>
+          </div>
+        </div>
+        <div class="nav-buttons">
+          <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+          <button class="btn" onclick="nextStep()">Next →</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" id="step3">
+      <div class="card">
+        <h2>Step 3: Agent Personality</h2>
+        <div class="form-group">
+          <label>Agent Name</label>
+          <input type="text" id="agentName" placeholder="Assistant" value="Assistant">
+        </div>
+        <div class="form-group">
+          <label>Personality Style</label>
+          <select id="personality">
+            <option value="helpful">Helpful & Professional</option>
+            <option value="friendly">Friendly & Casual</option>
+            <option value="technical">Technical & Precise</option>
+            <option value="creative">Creative & Playful</option>
+          </select>
+        </div>
+        <div class="nav-buttons">
+          <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+          <button class="btn" onclick="generateConfig()">Generate Config →</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" id="step4">
+      <div class="card">
+        <h2>Your Config is Ready! 🎉</h2>
+        <p style="margin-bottom: 1rem;">Copy this to <code>openclaw.json</code> and run <code>openclaw gateway start</code></p>
+        <pre id="configOutput"></pre>
+        <div class="nav-buttons">
+          <button class="btn" onclick="copyConfig()">📋 Copy to Clipboard</button>
+          <button class="btn btn-secondary" onclick="startOver()">Start Over</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Built by <a href="https://primal.net/p/npub1t9v3eu5xnf3rn32vq0335k26r27kgs6rcns5x933v5pnt4jzgyhszcthry">Seafloor 🦞</a> • 
+      <a href="https://openclaw.ai">OpenClaw Docs</a>
+    </div>
+  </div>
+  
+  <script>
+    let currentStep = 1;
+    
+    function updateProgress() {
+      for (let i = 1; i <= 4; i++) {
+        const dot = document.getElementById('dot' + i);
+        dot.className = 'progress-dot';
+        if (i < currentStep) dot.classList.add('done');
+        if (i === currentStep) dot.classList.add('active');
+      }
+    }
+    
+    function showStep(step) {
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+      document.getElementById('step' + step).classList.add('active');
+      currentStep = step;
+      updateProgress();
+    }
+    
+    function nextStep() { showStep(currentStep + 1); }
+    function prevStep() { showStep(currentStep - 1); }
+    function startOver() { showStep(1); }
+    
+    function updateChannelFields() {
+      const channel = document.getElementById('channel').value;
+      document.getElementById('telegramFields').style.display = channel === 'telegram' ? 'block' : 'none';
+      document.getElementById('discordFields').style.display = channel === 'discord' ? 'block' : 'none';
+    }
+    
+    function generateConfig() {
+      const provider = document.getElementById('provider').value;
+      const apiKey = document.getElementById('apiKey').value || 'YOUR_API_KEY';
+      const channel = document.getElementById('channel').value;
+      const agentName = document.getElementById('agentName').value || 'Assistant';
+      
+      const models = {
+        anthropic: 'anthropic/claude-sonnet-4-20250514',
+        openai: 'openai/gpt-4o',
+        google: 'google/gemini-2.0-flash',
+        openrouter: 'openrouter/anthropic/claude-sonnet-4-20250514'
+      };
+      
+      const config = {
+        agents: {
+          defaults: {
+            model: models[provider]
+          }
+        },
+        models: {}
+      };
+      
+      config.models[provider] = { apiKey };
+      
+      if (channel === 'telegram') {
+        config.channels = {
+          telegram: {
+            botToken: document.getElementById('tgToken').value || 'YOUR_BOT_TOKEN',
+            userId: document.getElementById('tgUserId').value || 'YOUR_USER_ID'
+          }
+        };
+      } else if (channel === 'discord') {
+        config.channels = {
+          discord: {
+            botToken: document.getElementById('dcToken').value || 'YOUR_BOT_TOKEN',
+            adminUserId: document.getElementById('dcUserId').value || 'YOUR_USER_ID'
+          }
+        };
+      }
+      
+      document.getElementById('configOutput').textContent = JSON.stringify(config, null, 2);
+      showStep(4);
+    }
+    
+    function copyConfig() {
+      const config = document.getElementById('configOutput').textContent;
+      navigator.clipboard.writeText(config);
+      alert('Copied to clipboard!');
+    }
+  </script>
+</body>
+</html>
