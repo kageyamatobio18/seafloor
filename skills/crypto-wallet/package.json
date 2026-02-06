@@ -1,0 +1,17 @@
+{
+  "name": "crypto-wallet-skill",
+  "version": "1.0.0",
+  "description": "OpenClaw skill for managing cryptocurrency wallets",
+  "type": "module",
+  "scripts": {
+    "generate": "node scripts/generate-wallet.mjs",
+    "balance": "node scripts/balance.mjs",
+    "watch": "node scripts/watch.mjs"
+  },
+  "dependencies": {
+    "ethers": "^6.11.0"
+  },
+  "keywords": ["openclaw", "skill", "crypto", "wallet", "ethereum", "polygon"],
+  "author": "Seafloor <seafloor@openclaw.ai>",
+  "license": "MIT"
+}
