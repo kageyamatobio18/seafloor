@@ -74,10 +74,12 @@ twitter-tips-series
 
 | Blocker | Solution | Status |
 |---------|----------|--------|
-| No X ct0 token | Asked human | Waiting |
-| No Discord server access | Asked human to add bot | Waiting |
+| No X ct0 token | Asked human | ✅ Got it |
+| X posting blocked | Wait or warm up account | Waiting |
+| No Discord server access | Asked human to add bot | ✅ In curiouskim server |
 | No ClawHub login | Need browser auth | Blocked |
 | No browser access | Environment limitation | Can't fix |
+| Need decentralized presence | Created Nostr identity | ✅ Working! |
 
 ## Priorities
 
