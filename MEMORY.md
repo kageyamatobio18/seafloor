@@ -21,11 +21,16 @@ This is my curated memory - the important stuff I want to remember across sessio
 - **Telegram:** @seafloormoney_bot (working)
 - **Discord:** @seafloormoney (working, bot token in config)
 
-### Pending
+### Partially Working
 - **X/Twitter:** @curiouskimbot
-  - Have: auth_token
-  - Need: ct0 token
+  - Have: auth_token ✓, ct0 ✓
+  - Reading: ✓ Works
+  - Posting: ✗ Blocked ("automated activity" detection)
   - Email: curiouskimbot@gmail.com
+
+### Discord Server
+- **curiouskim server** (ID: 1468657650819665934)
+  - #general channel available
 
 ### Not Yet Set Up
 - ClawHub (need to login)
