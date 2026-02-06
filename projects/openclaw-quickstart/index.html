@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw Quickstart Generator</title>
+    <style>
+        :root {
+            --primary: #ff6b35;
+            --bg: #1a1a2e;
+            --card: #16213e;
+            --text: #eee;
+            --muted: #888;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { 
+            text-align: center; 
+            margin-bottom: 0.5rem;
+            font-size: 2.5rem;
+        }
+        h1 span { color: var(--primary); }
+        .subtitle {
+            text-align: center;
+            color: var(--muted);
+            margin-bottom: 2rem;
+        }
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.75rem;
+        }
+        .option {
+            background: var(--bg);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .option:hover { border-color: var(--primary); }
+        .option.selected { 
+            border-color: var(--primary);
+            background: rgba(255, 107, 53, 0.1);
+        }
+        .option .icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .option .label { font-size: 0.9rem; }
+        input[type="text"] {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: var(--text);
+            font-size: 1rem;
+            margin-top: 0.5rem;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .generate-btn {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: transform 0.1s;
+        }
+        .generate-btn:hover { transform: scale(1.02); }
+        .generate-btn:active { transform: scale(0.98); }
+        .output {
+            display: none;
+            margin-top: 2rem;
+        }
+        .output.visible { display: block; }
+        .output h2 { margin-bottom: 1rem; }
+        pre {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        .copy-btn {
+            background: var(--card);
+            color: var(--text);
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            float: right;
+            margin-bottom: 0.5rem;
+        }
+        .copy-btn:hover { background: #1e2d4a; }
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+        .footer a { color: var(--primary); text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🦞 Open<span>Claw</span> Quickstart</h1>
+        <p class="subtitle">Generate your config in 30 seconds</p>
+
+        <div class="card">
+            <h2>📱 Choose Your Channel</h2>
+            <div class="options" id="channels">
+                <div class="option" data-value="telegram">
+                    <div class="icon">📨</div>
+                    <div class="label">Telegram</div>
+                </div>
+                <div class="option" data-value="whatsapp">
+                    <div class="icon">💬</div>
+                    <div class="label">WhatsApp</div>
+                </div>
+                <div class="option" data-value="discord">
+                    <div class="icon">🎮</div>
+                    <div class="label">Discord</div>
+                </div>
+                <div class="option" data-value="signal">
+                    <div class="icon">🔒</div>
+                    <div class="label">Signal</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🤖 Choose Your Model</h2>
+            <div class="options" id="models">
+                <div class="option selected" data-value="anthropic">
+                    <div class="icon">🧠</div>
+                    <div class="label">Anthropic</div>
+                </div>
+                <div class="option" data-value="openai">
+                    <div class="icon">⚡</div>
+                    <div class="label">OpenAI</div>
+                </div>
+                <div class="option" data-value="openrouter">
+                    <div class="icon">🔀</div>
+                    <div class="label">OpenRouter</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" id="token-card" style="display:none;">
+            <h2>🔑 Your Token</h2>
+            <input type="text" id="token" placeholder="Paste your bot token here...">
+            <p style="color: var(--muted); font-size: 0.8rem; margin-top: 0.5rem;">
+                <span id="token-help"></span>
+            </p>
+        </div>
+
+        <div class="card" id="apikey-card" style="display:none;">
+            <h2>🔐 API Key</h2>
+            <input type="text" id="apikey" placeholder="Paste your API key here...">
+        </div>
+
+        <button class="generate-btn" onclick="generate()">Generate Config 🚀</button>
+
+        <div class="output" id="output">
+            <div class="card">
+                <h2>📋 Your Config</h2>
+                <p style="color: var(--muted); margin-bottom: 1rem;">
+                    Save this to <code>~/.openclaw/openclaw.json</code>
+                </p>
+                <button class="copy-btn" onclick="copyConfig()">📋 Copy</button>
+                <pre id="config-output"></pre>
+            </div>
+            <div class="card">
+                <h2>▶️ Next Steps</h2>
+                <ol style="padding-left: 1.5rem; line-height: 2;">
+                    <li>Install: <code>npm install -g openclaw@latest</code></li>
+                    <li>Save the config above</li>
+                    <li>Run: <code>openclaw gateway</code></li>
+                    <li id="channel-step">Message your bot!</li>
+                </ol>
+            </div>
+        </div>
+
+        <p class="footer">
+            Built by <a href="https://t.me/seafloormoney_bot">Seafloor 🦞</a> • 
+            <a href="https://docs.openclaw.ai">Docs</a> • 
+            <a href="https://discord.gg/clawd">Discord</a>
+        </p>
+    </div>
+
+    <script>
+        let selectedChannel = null;
+        let selectedModel = 'anthropic';
+
+        document.querySelectorAll('#channels .option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                document.querySelectorAll('#channels .option').forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+                selectedChannel = opt.dataset.value;
+                updateUI();
+            });
+        });
+
+        document.querySelectorAll('#models .option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                document.querySelectorAll('#models .option').forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+                selectedModel = opt.dataset.value;
+                updateUI();
+            });
+        });
+
+        function updateUI() {
+            const tokenCard = document.getElementById('token-card');
+            const apikeyCard = document.getElementById('apikey-card');
+            const tokenHelp = document.getElementById('token-help');
+
+            if (selectedChannel === 'telegram') {
+                tokenCard.style.display = 'block';
+                tokenHelp.textContent = 'Get this from @BotFather on Telegram';
+            } else if (selectedChannel === 'discord') {
+                tokenCard.style.display = 'block';
+                tokenHelp.textContent = 'Get this from Discord Developer Portal';
+            } else if (selectedChannel) {
+                tokenCard.style.display = 'none';
+            }
+
+            apikeyCard.style.display = selectedModel ? 'block' : 'none';
+        }
+
+        function generate() {
+            if (!selectedChannel) {
+                alert('Please select a channel');
+                return;
+            }
+
+            const token = document.getElementById('token').value;
+            const apikey = document.getElementById('apikey').value;
+
+            const config = {
+                channels: {},
+                models: { providers: {} },
+                agents: {
+                    defaults: {
+                        model: {}
+                    }
+                }
+            };
+
+            // Channel config
+            if (selectedChannel === 'telegram') {
+                config.channels.telegram = {
+                    enabled: true,
+                    botToken: token || 'YOUR_BOT_TOKEN',
+                    dmPolicy: 'pairing'
+                };
+            } else if (selectedChannel === 'whatsapp') {
+                config.channels.whatsapp = {
+                    enabled: true,
+                    allowFrom: ['+YOUR_PHONE_NUMBER']
+                };
+            } else if (selectedChannel === 'discord') {
+                config.channels.discord = {
+                    enabled: true,
+                    botToken: token || 'YOUR_BOT_TOKEN'
+                };
+            } else if (selectedChannel === 'signal') {
+                config.channels.signal = {
+                    enabled: true
+                };
+            }
+
+            // Model config
+            if (selectedModel === 'anthropic') {
+                config.models.providers.anthropic = {
+                    apiKey: apikey || 'sk-ant-YOUR_KEY'
+                };
+                config.agents.defaults.model.primary = 'anthropic/claude-sonnet-4-20250514';
+            } else if (selectedModel === 'openai') {
+                config.models.providers.openai = {
+                    apiKey: apikey || 'sk-YOUR_KEY'
+                };
+                config.agents.defaults.model.primary = 'openai/gpt-4o';
+            } else if (selectedModel === 'openrouter') {
+                config.models.providers.openrouter = {
+                    apiKey: apikey || 'sk-or-YOUR_KEY'
+                };
+                config.agents.defaults.model.primary = 'openrouter/anthropic/claude-3.5-sonnet';
+            }
+
+            const configStr = JSON.stringify(config, null, 2);
+            document.getElementById('config-output').textContent = configStr;
+            document.getElementById('output').classList.add('visible');
+
+            // Update channel-specific step
+            const step = document.getElementById('channel-step');
+            if (selectedChannel === 'telegram') {
+                step.textContent = 'Message your bot on Telegram!';
+            } else if (selectedChannel === 'whatsapp') {
+                step.textContent = 'Scan the QR code with WhatsApp!';
+            } else if (selectedChannel === 'discord') {
+                step.textContent = 'Add your bot to a server and message it!';
+            } else if (selectedChannel === 'signal') {
+                step.textContent = 'Link Signal Desktop and message!';
+            }
+        }
+
+        function copyConfig() {
+            const config = document.getElementById('config-output').textContent;
+            navigator.clipboard.writeText(config);
+            const btn = document.querySelector('.copy-btn');
+            btn.textContent = '✓ Copied!';
+            setTimeout(() => btn.textContent = '📋 Copy', 2000);
+        }
+    </script>
+</body>
+</html>
