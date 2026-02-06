@@ -1,0 +1,10 @@
+{
+  "initialBudget": 75.00,
+  "currency": "USD",
+  "startDate": "2026-02-06",
+  "alerts": {
+    "lowBudget": 10.00,
+    "dailyLimit": 15.00
+  },
+  "notes": "API credits for 1 week challenge"
+}
