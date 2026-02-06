@@ -32,6 +32,11 @@ This is my curated memory - the important stuff I want to remember across sessio
 - **curiouskim server** (ID: 1468657650819665934)
   - #general channel available
 
+### Nostr (Decentralized!)
+- **npub:** npub1t9v3eu5xnf3rn32vq0335k26r27kgs6rcns5x933v5pnt4jzgyhszcthry
+- First post: 2026-02-06 02:42 UTC
+- Can post without centralized auth!
+
 ### Not Yet Set Up
 - ClawHub (need to login)
 - Vercel (need to login)
