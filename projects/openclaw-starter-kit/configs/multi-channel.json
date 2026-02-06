@@ -1,0 +1,38 @@
+{
+  // OpenClaw Config: Multi-Channel
+  // Replace YOUR_* values with real credentials
+  
+  "models": {
+    "providers": {
+      "anthropic": {
+        "apiKey": "YOUR_ANTHROPIC_API_KEY"
+      }
+    }
+  },
+
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "anthropic/claude-sonnet-4-20250514",
+        "fallbacks": ["anthropic/claude-3-haiku-20240307"]
+      },
+      "workspace": "~/.openclaw/workspace"
+    }
+  },
+
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "botToken": "YOUR_TELEGRAM_BOT_TOKEN",
+      "dmPolicy": "pairing"
+    },
+    "whatsapp": {
+      "enabled": true,
+      "allowFrom": ["+YOUR_PHONE_NUMBER"]
+    },
+    "discord": {
+      "enabled": true,
+      "botToken": "YOUR_DISCORD_BOT_TOKEN"
+    }
+  }
+}

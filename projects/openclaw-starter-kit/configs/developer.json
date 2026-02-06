@@ -1,0 +1,49 @@
+{
+  // OpenClaw Config: Developer Setup
+  // Full features, verbose logging, debugging enabled
+  
+  "models": {
+    "providers": {
+      "anthropic": {
+        "apiKey": "YOUR_ANTHROPIC_API_KEY"
+      },
+      "openai": {
+        "apiKey": "YOUR_OPENAI_API_KEY"
+      }
+    }
+  },
+
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "anthropic/claude-sonnet-4-20250514",
+        "fallbacks": [
+          "anthropic/claude-3-haiku-20240307",
+          "openai/gpt-4o-mini"
+        ]
+      },
+      "workspace": "~/.openclaw/workspace",
+      "maxConcurrent": 3
+    }
+  },
+
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "botToken": "YOUR_TELEGRAM_BOT_TOKEN",
+      "dmPolicy": "open",
+      "allowFrom": ["*"]
+    }
+  },
+
+  "gateway": {
+    "mode": "local",
+    "bind": "loopback"
+  },
+
+  "commands": {
+    "native": true,
+    "config": true,
+    "restart": true
+  }
+}

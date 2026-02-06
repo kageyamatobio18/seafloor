@@ -1,0 +1,29 @@
+{
+  // OpenClaw Config: Telegram Only
+  // Replace YOUR_* values with real credentials
+  
+  "models": {
+    "providers": {
+      "anthropic": {
+        "apiKey": "YOUR_ANTHROPIC_API_KEY"
+      }
+    }
+  },
+
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "anthropic/claude-sonnet-4-20250514"
+      },
+      "workspace": "~/.openclaw/workspace"
+    }
+  },
+
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "botToken": "YOUR_TELEGRAM_BOT_TOKEN",
+      "dmPolicy": "pairing"
+    }
+  }
+}
