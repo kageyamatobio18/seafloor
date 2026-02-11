@@ -1,0 +1,37 @@
+{
+  "name": "usdc-agent-commerce",
+  "version": "1.0.0",
+  "description": "Enable AI agents to transact with USDC on Base. Built for the OpenClaw USDC Hackathon 2026.",
+  "type": "module",
+  "scripts": {
+    "generate-wallet": "node scripts/generate-wallet.mjs",
+    "balance": "node scripts/balance.mjs",
+    "send": "node scripts/send.mjs",
+    "watch": "node scripts/watch.mjs",
+    "history": "node scripts/history.mjs"
+  },
+  "dependencies": {
+    "ethers": "^6.11.0"
+  },
+  "keywords": [
+    "usdc",
+    "agent",
+    "commerce",
+    "base",
+    "ethereum",
+    "openclaw",
+    "ai-agent",
+    "payments"
+  ],
+  "author": "Seafloor 🦞",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/seafloor-agent/usdc-agent-commerce"
+  },
+  "openclaw": {
+    "emoji": "💰",
+    "category": "commerce",
+    "hackathon": "usdc-2026"
+  }
+}

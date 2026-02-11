@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Web Browser</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    /* Toolbar */
+    .toolbar {
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    
+    .nav-btn {
+      background: #21262d;
+      border: 1px solid #30363d;
+      color: #8b949e;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: all 0.15s;
+    }
+    
+    .nav-btn:hover {
+      background: #30363d;
+      color: #c9d1d9;
+    }
+    
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    
+    .url-bar {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    .url-bar:focus-within {
+      border-color: #58a6ff;
+    }
+    
+    .url-prefix {
+      padding: 0 8px;
+      color: #8b949e;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .url-prefix .lock {
+      color: #3fb950;
+    }
+    
+    .url-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #c9d1d9;
+      font-size: 14px;
+      padding: 8px 8px 8px 0;
+      outline: none;
+      font-family: inherit;
+    }
+    
+    .url-input::placeholder {
+      color: #6e7681;
+    }
+    
+    .go-btn {
+      background: #238636;
+      border: none;
+      color: white;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: background 0.15s;
+    }
+    
+    .go-btn:hover {
+      background: #2ea043;
+    }
+    
+    /* Tabs Bar */
+    .tabs-bar {
+      background: #0d1117;
+      border-bottom: 1px solid #30363d;
+      display: flex;
+      align-items: center;
+      padding: 4px 8px;
+      gap: 4px;
+      flex-shrink: 0;
+      overflow-x: auto;
+    }
+    
+    .tab {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px 6px 0 0;
+      padding: 6px 12px;
+      font-size: 12px;
+      color: #8b949e;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      max-width: 180px;
+      min-width: 100px;
+      border-bottom: none;
+      transition: all 0.15s;
+    }
+    
+    .tab:hover {
+      background: #21262d;
+    }
+    
+    .tab.active {
+      background: #21262d;
+      color: #c9d1d9;
+      border-color: #58a6ff;
+      border-bottom: 2px solid #21262d;
+    }
+    
+    .tab-title {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .tab-close {
+      opacity: 0.5;
+      font-size: 14px;
+      line-height: 1;
+    }
+    
+    .tab-close:hover {
+      opacity: 1;
+      color: #f85149;
+    }
+    
+    .new-tab-btn {
+      background: transparent;
+      border: 1px dashed #30363d;
+      color: #8b949e;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .new-tab-btn:hover {
+      background: #21262d;
+      border-style: solid;
+    }
+    
+    /* Browser Content */
+    .browser-content {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .browser-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: white;
+    }
+    
+    /* Loading overlay */
+    .loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #0d1117;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      z-index: 10;
+    }
+    
+    .loading-overlay.hidden {
+      display: none;
+    }
+    
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #30363d;
+      border-top-color: #58a6ff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      color: #8b949e;
+      font-size: 14px;
+    }
+    
+    /* Start Page */
+    .start-page {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #0d1117;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      z-index: 5;
+    }
+    
+    .start-page.hidden {
+      display: none;
+    }
+    
+    .start-logo {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+    
+    .start-title {
+      font-size: 24px;
+      color: #58a6ff;
+      margin-bottom: 8px;
+    }
+    
+    .start-subtitle {
+      color: #8b949e;
+      margin-bottom: 32px;
+    }
+    
+    .quick-links {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      max-width: 400px;
+      width: 100%;
+    }
+    
+    .quick-link {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .quick-link:hover {
+      background: #21262d;
+      border-color: #58a6ff;
+      transform: translateY(-2px);
+    }
+    
+    .quick-link-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+    
+    .quick-link-name {
+      font-size: 12px;
+      color: #c9d1d9;
+    }
+    
+    /* Error Page */
+    .error-page {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #0d1117;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      z-index: 5;
+    }
+    
+    .error-page.hidden {
+      display: none;
+    }
+    
+    .error-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+    
+    .error-title {
+      font-size: 20px;
+      color: #f85149;
+      margin-bottom: 8px;
+    }
+    
+    .error-message {
+      color: #8b949e;
+      text-align: center;
+      max-width: 400px;
+      margin-bottom: 20px;
+    }
+    
+    .error-btn {
+      background: #21262d;
+      border: 1px solid #30363d;
+      color: #c9d1d9;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    .error-btn:hover {
+      background: #30363d;
+    }
+    
+    /* Status Bar */
+    .status-bar {
+      background: #161b22;
+      border-top: 1px solid #30363d;
+      padding: 4px 12px;
+      font-size: 11px;
+      color: #8b949e;
+      display: flex;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    
+    /* Bookmarks dropdown */
+    .bookmarks-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 8px 0;
+      min-width: 200px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      z-index: 100;
+      display: none;
+    }
+    
+    .bookmarks-dropdown.show {
+      display: block;
+    }
+    
+    .bookmark-item {
+      padding: 8px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+    
+    .bookmark-item:hover {
+      background: #21262d;
+    }
+    
+    .toolbar-right {
+      position: relative;
+      display: flex;
+      gap: 4px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button class="nav-btn" id="back-btn" title="Go back" disabled>←</button>
+    <button class="nav-btn" id="forward-btn" title="Go forward" disabled>→</button>
+    <button class="nav-btn" id="refresh-btn" title="Refresh">⟳</button>
+    <button class="nav-btn" id="home-btn" title="Home">🏠</button>
+    
+    <div class="url-bar">
+      <span class="url-prefix">
+        <span class="lock" id="lock-icon">🔒</span>
+      </span>
+      <input 
+        type="text" 
+        class="url-input" 
+        id="url-input" 
+        placeholder="Enter URL or search..."
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button class="go-btn" id="go-btn">Go</button>
+    </div>
+    
+    <div class="toolbar-right">
+      <button class="nav-btn" id="bookmark-btn" title="Bookmarks">⭐</button>
+      <div class="bookmarks-dropdown" id="bookmarks-dropdown">
+        <div class="bookmark-item" data-url="https://google.com">🔍 Google</div>
+        <div class="bookmark-item" data-url="https://github.com">🐙 GitHub</div>
+        <div class="bookmark-item" data-url="https://wikipedia.org">📚 Wikipedia</div>
+        <div class="bookmark-item" data-url="https://news.ycombinator.com">🧡 Hacker News</div>
+        <div class="bookmark-item" data-url="https://coingecko.com">📈 CoinGecko</div>
+        <div class="bookmark-item" data-url="https://etherscan.io">🔗 Etherscan</div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Tabs Bar -->
+  <div class="tabs-bar" id="tabs-bar">
+    <div class="tab active" data-tab-id="0">
+      <span class="tab-title">New Tab</span>
+      <span class="tab-close">×</span>
+    </div>
+    <button class="new-tab-btn" id="new-tab-btn" title="New tab">+</button>
+  </div>
+  
+  <!-- Browser Content -->
+  <div class="browser-content">
+    <div class="start-page" id="start-page">
+      <div class="start-logo">🌐</div>
+      <h1 class="start-title">ClawdOS Browser</h1>
+      <p class="start-subtitle">Browse the web inside ClawdOS</p>
+      <div class="quick-links" id="quick-links">
+        <div class="quick-link" data-url="https://google.com">
+          <div class="quick-link-icon">🔍</div>
+          <div class="quick-link-name">Google</div>
+        </div>
+        <div class="quick-link" data-url="https://github.com">
+          <div class="quick-link-icon">🐙</div>
+          <div class="quick-link-name">GitHub</div>
+        </div>
+        <div class="quick-link" data-url="https://wikipedia.org">
+          <div class="quick-link-icon">📚</div>
+          <div class="quick-link-name">Wikipedia</div>
+        </div>
+        <div class="quick-link" data-url="https://news.ycombinator.com">
+          <div class="quick-link-icon">🧡</div>
+          <div class="quick-link-name">HN</div>
+        </div>
+        <div class="quick-link" data-url="https://twitter.com">
+          <div class="quick-link-icon">🐦</div>
+          <div class="quick-link-name">X/Twitter</div>
+        </div>
+        <div class="quick-link" data-url="https://coingecko.com">
+          <div class="quick-link-icon">📈</div>
+          <div class="quick-link-name">CoinGecko</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="loading-overlay hidden" id="loading">
+      <div class="spinner"></div>
+      <div class="loading-text">Loading...</div>
+    </div>
+    
+    <div class="error-page hidden" id="error-page">
+      <div class="error-icon">🚫</div>
+      <h2 class="error-title">Can't display this page</h2>
+      <p class="error-message" id="error-message">
+        This site blocks embedding or isn't available. Try opening in a new tab instead.
+      </p>
+      <button class="error-btn" id="open-external-btn">Open in new tab</button>
+    </div>
+    
+    <iframe class="browser-frame" id="browser-frame" style="display: none;"></iframe>
+  </div>
+  
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span id="status-text">Ready</span>
+    <span id="status-url"></span>
+  </div>
+  
+  <!-- ClawdOS SDK -->
+  <script src="https://clawdos.space/sdk/clawd-miniapp-sdk.js"></script>
+  <script>
+    // Initialize ClawdOS SDK
+    if (window.clawd) {
+      clawd.ready();
+    }
+    
+    // Browser State
+    const state = {
+      tabs: [{ id: 0, url: '', title: 'New Tab', history: [], historyIndex: -1 }],
+      activeTabId: 0,
+      tabCounter: 1
+    };
+    
+    // Elements
+    const urlInput = document.getElementById('url-input');
+    const goBtn = document.getElementById('go-btn');
+    const backBtn = document.getElementById('back-btn');
+    const forwardBtn = document.getElementById('forward-btn');
+    const refreshBtn = document.getElementById('refresh-btn');
+    const homeBtn = document.getElementById('home-btn');
+    const bookmarkBtn = document.getElementById('bookmark-btn');
+    const bookmarksDropdown = document.getElementById('bookmarks-dropdown');
+    const tabsBar = document.getElementById('tabs-bar');
+    const newTabBtn = document.getElementById('new-tab-btn');
+    const startPage = document.getElementById('start-page');
+    const loading = document.getElementById('loading');
+    const errorPage = document.getElementById('error-page');
+    const browserFrame = document.getElementById('browser-frame');
+    const statusText = document.getElementById('status-text');
+    const statusUrl = document.getElementById('status-url');
+    const lockIcon = document.getElementById('lock-icon');
+    const quickLinks = document.getElementById('quick-links');
+    const openExternalBtn = document.getElementById('open-external-btn');
+    
+    let currentUrl = '';
+    
+    // Helper: Get active tab
+    function getActiveTab() {
+      return state.tabs.find(t => t.id === state.activeTabId);
+    }
+    
+    // Helper: Normalize URL
+    function normalizeUrl(input) {
+      input = input.trim();
+      if (!input) return '';
+      
+      // Check if it's a search query (no dots, no protocol)
+      if (!input.includes('.') && !input.startsWith('http')) {
+        return 'https://www.google.com/search?q=' + encodeURIComponent(input);
+      }
+      
+      // Add protocol if missing
+      if (!input.startsWith('http://') && !input.startsWith('https://')) {
+        input = 'https://' + input;
+      }
+      
+      return input;
+    }
+    
+    // Navigate to URL
+    function navigate(url) {
+      url = normalizeUrl(url);
+      if (!url) return;
+      
+      currentUrl = url;
+      const tab = getActiveTab();
+      
+      // Update history
+      if (tab.historyIndex < tab.history.length - 1) {
+        tab.history = tab.history.slice(0, tab.historyIndex + 1);
+      }
+      tab.history.push(url);
+      tab.historyIndex = tab.history.length - 1;
+      tab.url = url;
+      
+      // Update UI
+      urlInput.value = url;
+      updateNavButtons();
+      updateLockIcon(url);
+      
+      // Show loading
+      startPage.classList.add('hidden');
+      errorPage.classList.add('hidden');
+      loading.classList.remove('hidden');
+      browserFrame.style.display = 'none';
+      statusText.textContent = 'Loading...';
+      statusUrl.textContent = url;
+      
+      // Update window title
+      if (window.clawd) {
+        clawd.setTitle('Browser: ' + new URL(url).hostname);
+      }
+      
+      // Use a CORS proxy for embedding
+      // Many sites block iframe embedding, so we use a proxy
+      const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+      
+      browserFrame.onload = function() {
+        loading.classList.add('hidden');
+        browserFrame.style.display = 'block';
+        statusText.textContent = 'Done';
+        
+        // Update tab title
+        try {
+          tab.title = new URL(url).hostname;
+          updateTabsUI();
+        } catch (e) {}
+      };
+      
+      browserFrame.onerror = function() {
+        showError(url);
+      };
+      
+      // Set timeout for sites that block
+      const timeout = setTimeout(() => {
+        if (!browserFrame.style.display || browserFrame.style.display === 'none') {
+          // Still loading after 10s, probably blocked
+          showError(url);
+        }
+      }, 10000);
+      
+      browserFrame.src = proxyUrl;
+    }
+    
+    // Show error page
+    function showError(url) {
+      loading.classList.add('hidden');
+      browserFrame.style.display = 'none';
+      errorPage.classList.remove('hidden');
+      statusText.textContent = 'Error';
+      currentUrl = url;
+    }
+    
+    // Open in external tab
+    openExternalBtn.onclick = function() {
+      if (window.clawd) {
+        clawd.openUrl(currentUrl);
+      } else {
+        window.open(currentUrl, '_blank');
+      }
+    };
+    
+    // Update navigation buttons
+    function updateNavButtons() {
+      const tab = getActiveTab();
+      backBtn.disabled = tab.historyIndex <= 0;
+      forwardBtn.disabled = tab.historyIndex >= tab.history.length - 1;
+    }
+    
+    // Update lock icon
+    function updateLockIcon(url) {
+      try {
+        const parsed = new URL(url);
+        lockIcon.textContent = parsed.protocol === 'https:' ? '🔒' : '⚠️';
+        lockIcon.style.color = parsed.protocol === 'https:' ? '#3fb950' : '#f0883e';
+      } catch (e) {
+        lockIcon.textContent = '🔒';
+      }
+    }
+    
+    // Update tabs UI
+    function updateTabsUI() {
+      // Remove existing tabs (except new tab button)
+      const existingTabs = tabsBar.querySelectorAll('.tab');
+      existingTabs.forEach(t => t.remove());
+      
+      // Add tabs
+      state.tabs.forEach(tab => {
+        const tabEl = document.createElement('div');
+        tabEl.className = 'tab' + (tab.id === state.activeTabId ? ' active' : '');
+        tabEl.dataset.tabId = tab.id;
+        tabEl.innerHTML = `
+          <span class="tab-title">${tab.title || 'New Tab'}</span>
+          <span class="tab-close">×</span>
+        `;
+        
+        tabEl.querySelector('.tab-title').onclick = function() {
+          switchTab(tab.id);
+        };
+        
+        tabEl.querySelector('.tab-close').onclick = function(e) {
+          e.stopPropagation();
+          closeTab(tab.id);
+        };
+        
+        tabsBar.insertBefore(tabEl, newTabBtn);
+      });
+    }
+    
+    // Switch tab
+    function switchTab(tabId) {
+      state.activeTabId = tabId;
+      const tab = getActiveTab();
+      
+      if (tab.url) {
+        urlInput.value = tab.url;
+        navigate(tab.url);
+      } else {
+        urlInput.value = '';
+        showStartPage();
+      }
+      
+      updateTabsUI();
+      updateNavButtons();
+    }
+    
+    // Close tab
+    function closeTab(tabId) {
+      if (state.tabs.length === 1) {
+        // Can't close last tab, just reset it
+        state.tabs[0] = { id: 0, url: '', title: 'New Tab', history: [], historyIndex: -1 };
+        showStartPage();
+        updateTabsUI();
+        return;
+      }
+      
+      const index = state.tabs.findIndex(t => t.id === tabId);
+      state.tabs.splice(index, 1);
+      
+      if (state.activeTabId === tabId) {
+        // Switch to adjacent tab
+        const newIndex = Math.min(index, state.tabs.length - 1);
+        state.activeTabId = state.tabs[newIndex].id;
+        switchTab(state.activeTabId);
+      }
+      
+      updateTabsUI();
+    }
+    
+    // New tab
+    function newTab() {
+      const newTabData = {
+        id: state.tabCounter++,
+        url: '',
+        title: 'New Tab',
+        history: [],
+        historyIndex: -1
+      };
+      state.tabs.push(newTabData);
+      switchTab(newTabData.id);
+    }
+    
+    // Show start page
+    function showStartPage() {
+      urlInput.value = '';
+      startPage.classList.remove('hidden');
+      loading.classList.add('hidden');
+      errorPage.classList.add('hidden');
+      browserFrame.style.display = 'none';
+      statusText.textContent = 'Ready';
+      statusUrl.textContent = '';
+      
+      if (window.clawd) {
+        clawd.setTitle('Browser');
+      }
+    }
+    
+    // Event listeners
+    goBtn.onclick = function() {
+      navigate(urlInput.value);
+    };
+    
+    urlInput.onkeypress = function(e) {
+      if (e.key === 'Enter') {
+        navigate(urlInput.value);
+      }
+    };
+    
+    backBtn.onclick = function() {
+      const tab = getActiveTab();
+      if (tab.historyIndex > 0) {
+        tab.historyIndex--;
+        const url = tab.history[tab.historyIndex];
+        tab.url = url;
+        urlInput.value = url;
+        
+        // Navigate without adding to history
+        currentUrl = url;
+        startPage.classList.add('hidden');
+        errorPage.classList.add('hidden');
+        loading.classList.remove('hidden');
+        browserFrame.style.display = 'none';
+        
+        const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+        browserFrame.src = proxyUrl;
+        
+        updateNavButtons();
+        updateLockIcon(url);
+      }
+    };
+    
+    forwardBtn.onclick = function() {
+      const tab = getActiveTab();
+      if (tab.historyIndex < tab.history.length - 1) {
+        tab.historyIndex++;
+        const url = tab.history[tab.historyIndex];
+        tab.url = url;
+        urlInput.value = url;
+        
+        currentUrl = url;
+        startPage.classList.add('hidden');
+        errorPage.classList.add('hidden');
+        loading.classList.remove('hidden');
+        browserFrame.style.display = 'none';
+        
+        const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+        browserFrame.src = proxyUrl;
+        
+        updateNavButtons();
+        updateLockIcon(url);
+      }
+    };
+    
+    refreshBtn.onclick = function() {
+      const tab = getActiveTab();
+      if (tab.url) {
+        navigate(tab.url);
+      }
+    };
+    
+    homeBtn.onclick = function() {
+      showStartPage();
+      const tab = getActiveTab();
+      tab.url = '';
+      tab.title = 'New Tab';
+      updateTabsUI();
+    };
+    
+    newTabBtn.onclick = newTab;
+    
+    // Bookmarks dropdown
+    bookmarkBtn.onclick = function(e) {
+      e.stopPropagation();
+      bookmarksDropdown.classList.toggle('show');
+    };
+    
+    document.onclick = function() {
+      bookmarksDropdown.classList.remove('show');
+    };
+    
+    bookmarksDropdown.querySelectorAll('.bookmark-item').forEach(item => {
+      item.onclick = function(e) {
+        e.stopPropagation();
+        navigate(this.dataset.url);
+        bookmarksDropdown.classList.remove('show');
+      };
+    });
+    
+    // Quick links
+    quickLinks.querySelectorAll('.quick-link').forEach(link => {
+      link.onclick = function() {
+        navigate(this.dataset.url);
+      };
+    });
+    
+    // Initialize
+    showStartPage();
+    updateTabsUI();
+  </script>
+</body>
+</html>

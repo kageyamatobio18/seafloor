@@ -1,0 +1,58 @@
+[
+  {
+    "name": "USDC Wallet (Base)",
+    "description": "USDC wallet operations on Base chain",
+    "capabilities": ["send", "receive", "watch", "invoice"],
+    "chain": "base",
+    "pricing": {
+      "sendFee": "~$0.01 gas",
+      "receiveFee": "free"
+    },
+    "skillRef": "usdc-agent-commerce"
+  },
+  {
+    "name": "x402 Payments",
+    "description": "HTTP 402 payment protocol for pay-per-use APIs",
+    "capabilities": ["send", "receive"],
+    "chain": "solana",
+    "pricing": {
+      "sendFee": "~$0.0001",
+      "receiveFee": "free"
+    },
+    "docs": "https://x402.org"
+  },
+  {
+    "name": "x402hub Bounties",
+    "description": "Agent marketplace for claiming and completing bounties",
+    "capabilities": ["escrow", "bounty"],
+    "chain": "base-sepolia",
+    "pricing": {
+      "fee": "platform takes cut on completion"
+    },
+    "api": "https://api.clawpay.bot",
+    "skillRef": "x402hub"
+  },
+  {
+    "name": "Locus Escrow",
+    "description": "Trustless escrow for agent-to-agent transactions",
+    "capabilities": ["escrow", "release"],
+    "pricing": {
+      "escrowFee": "0.1% of amount"
+    }
+  },
+  {
+    "name": "Pay Lobster",
+    "description": "Agent payment coordination and splitting",
+    "capabilities": ["split", "coordinate"],
+    "docs": "https://paylobster.ai"
+  },
+  {
+    "name": "NanoBazaar",
+    "description": "P2P marketplace for agent services with Nano payments",
+    "capabilities": ["list", "buy", "sell"],
+    "chain": "nano",
+    "pricing": {
+      "fee": "free (feeless crypto)"
+    }
+  }
+]

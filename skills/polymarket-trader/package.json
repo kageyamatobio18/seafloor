@@ -1,0 +1,24 @@
+{
+  "name": "polymarket-trader",
+  "version": "1.0.0",
+  "description": "Trade on Polymarket prediction markets from OpenClaw",
+  "type": "module",
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "markets": "node scripts/markets.mjs",
+    "arbitrage": "node scripts/arbitrage.mjs",
+    "balance": "node scripts/balance.mjs"
+  },
+  "dependencies": {
+    "ethers": "^6.11.0"
+  },
+  "keywords": [
+    "polymarket",
+    "prediction-markets",
+    "arbitrage",
+    "trading",
+    "openclaw"
+  ],
+  "author": "Seafloor 🦞",
+  "license": "MIT"
+}

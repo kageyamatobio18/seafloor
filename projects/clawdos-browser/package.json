@@ -1,0 +1,11 @@
+{
+  "name": "clawdos-browser",
+  "version": "1.0.0",
+  "description": "A full web browser for ClawdOS - browse any website, manage tabs, search the web",
+  "scripts": {
+    "start": "npx serve ."
+  },
+  "keywords": ["clawdos", "browser", "miniapp"],
+  "author": "Seafloor",
+  "license": "MIT"
+}

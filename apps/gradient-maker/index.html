@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gradient Maker | ClawdOS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #f472b6, #8b5cf6, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 1rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .preview-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 24px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .preview-box {
+            width: 100%;
+            height: 300px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-size {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: #fff;
+        }
+
+        .code-outputs {
+            display: grid;
+            gap: 12px;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            position: relative;
+        }
+
+        .code-label {
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .code-value {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.85rem;
+            color: #06b6d4;
+            word-break: break-all;
+            cursor: pointer;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .code-value:hover {
+            background: rgba(6, 182, 212, 0.1);
+        }
+
+        .code-value.copied {
+            background: rgba(16, 185, 129, 0.2);
+        }
+
+        .controls-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 24px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .control-group {
+            margin-bottom: 24px;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .control-value {
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        .gradient-type-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .type-btn {
+            flex: 1;
+            min-width: 80px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+        }
+
+        .type-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .type-btn.active {
+            background: rgba(139, 92, 246, 0.3);
+            border-color: #8b5cf6;
+        }
+
+        .color-stops {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .color-stop {
+            display: grid;
+            grid-template-columns: 50px 1fr 60px 32px;
+            gap: 10px;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .color-input {
+            width: 50px;
+            height: 40px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background: none;
+        }
+
+        .color-input::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        .color-input::-webkit-color-swatch {
+            border: none;
+            border-radius: 6px;
+        }
+
+        .position-input {
+            width: 100%;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 0.9rem;
+        }
+
+        .position-input:focus {
+            outline: none;
+            border-color: #8b5cf6;
+        }
+
+        .position-suffix {
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        .remove-stop {
+            width: 32px;
+            height: 32px;
+            background: rgba(239, 68, 68, 0.2);
+            border: none;
+            border-radius: 6px;
+            color: #ef4444;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+        }
+
+        .remove-stop:hover {
+            background: rgba(239, 68, 68, 0.4);
+        }
+
+        .remove-stop:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .add-stop-btn {
+            width: 100%;
+            padding: 10px;
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px dashed rgba(16, 185, 129, 0.5);
+            border-radius: 8px;
+            color: #10b981;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            margin-top: 8px;
+        }
+
+        .add-stop-btn:hover {
+            background: rgba(16, 185, 129, 0.3);
+        }
+
+        .angle-slider {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .angle-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #8b5cf6;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .angle-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .presets {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .preset {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .preset:hover {
+            transform: scale(1.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .action-btn.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+        }
+
+        .action-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .history-section {
+            margin-top: 24px;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .history-header h3 {
+            font-size: 1rem;
+            color: #888;
+        }
+
+        .clear-history {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+
+        .history-item {
+            aspect-ratio: 1;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .history-item:hover {
+            transform: scale(1.1);
+            border-color: #8b5cf6;
+        }
+
+        .keyboard-hint {
+            margin-top: 20px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .keyboard-hint kbd {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin: 0 2px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #10b981;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 Gradient Maker</h1>
+            <p class="subtitle">Create beautiful CSS gradients with ease</p>
+        </header>
+
+        <div class="main-content">
+            <div class="preview-section">
+                <div class="preview-box" id="preview">
+                    <span class="preview-size" id="previewSize">Preview</span>
+                </div>
+
+                <div class="code-outputs">
+                    <div class="code-block">
+                        <div class="code-label">CSS Property</div>
+                        <div class="code-value" id="cssCode" onclick="copyCode('css')">
+                            background: linear-gradient(90deg, #f472b6, #8b5cf6);
+                        </div>
+                    </div>
+                    <div class="code-block">
+                        <div class="code-label">Tailwind CSS</div>
+                        <div class="code-value" id="tailwindCode" onclick="copyCode('tailwind')">
+                            bg-gradient-to-r from-pink-400 to-purple-500
+                        </div>
+                    </div>
+                </div>
+
+                <div class="history-section">
+                    <div class="history-header">
+                        <h3>History</h3>
+                        <button class="clear-history" onclick="clearHistory()">Clear</button>
+                    </div>
+                    <div class="history-grid" id="historyGrid"></div>
+                </div>
+            </div>
+
+            <div class="controls-section">
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Gradient Type</span>
+                    </div>
+                    <div class="gradient-type-buttons">
+                        <button class="type-btn active" data-type="linear">Linear</button>
+                        <button class="type-btn" data-type="radial">Radial</button>
+                        <button class="type-btn" data-type="conic">Conic</button>
+                    </div>
+                </div>
+
+                <div class="control-group" id="angleGroup">
+                    <div class="control-label">
+                        <span>Angle</span>
+                        <span class="control-value" id="angleValue">90°</span>
+                    </div>
+                    <input type="range" class="angle-slider" id="angleSlider" min="0" max="360" value="90">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Color Stops</span>
+                    </div>
+                    <div class="color-stops" id="colorStops"></div>
+                    <button class="add-stop-btn" onclick="addColorStop()">+ Add Color Stop</button>
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Presets</span>
+                    </div>
+                    <div class="presets" id="presets"></div>
+                </div>
+
+                <div class="actions">
+                    <button class="action-btn primary" onclick="randomGradient()">🎲 Random</button>
+                    <button class="action-btn secondary" onclick="copyCode('css')">📋 Copy CSS</button>
+                </div>
+
+                <div class="keyboard-hint">
+                    <kbd>R</kbd> Random &nbsp;
+                    <kbd>C</kbd> Copy CSS &nbsp;
+                    <kbd>←</kbd><kbd>→</kbd> Rotate
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Copied to clipboard!</div>
+
+    <script>
+        // State
+        let state = {
+            type: 'linear',
+            angle: 90,
+            stops: [
+                { color: '#f472b6', position: 0 },
+                { color: '#8b5cf6', position: 100 }
+            ]
+        };
+
+        let history = JSON.parse(localStorage.getItem('gradientHistory') || '[]');
+
+        // Presets
+        const presets = [
+            { stops: [{ color: '#667eea', position: 0 }, { color: '#764ba2', position: 100 }] },
+            { stops: [{ color: '#f093fb', position: 0 }, { color: '#f5576c', position: 100 }] },
+            { stops: [{ color: '#4facfe', position: 0 }, { color: '#00f2fe', position: 100 }] },
+            { stops: [{ color: '#43e97b', position: 0 }, { color: '#38f9d7', position: 100 }] },
+            { stops: [{ color: '#fa709a', position: 0 }, { color: '#fee140', position: 100 }] },
+            { stops: [{ color: '#a8edea', position: 0 }, { color: '#fed6e3', position: 100 }] },
+            { stops: [{ color: '#ff0844', position: 0 }, { color: '#ffb199', position: 100 }] },
+            { stops: [{ color: '#0f0c29', position: 0 }, { color: '#302b63', position: 50 }, { color: '#24243e', position: 100 }] }
+        ];
+
+        // Initialize
+        function init() {
+            renderColorStops();
+            renderPresets();
+            renderHistory();
+            updatePreview();
+            bindEvents();
+        }
+
+        function bindEvents() {
+            // Type buttons
+            document.querySelectorAll('.type-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    state.type = btn.dataset.type;
+                    document.getElementById('angleGroup').style.display = 
+                        state.type === 'radial' ? 'none' : 'block';
+                    updatePreview();
+                });
+            });
+
+            // Angle slider
+            document.getElementById('angleSlider').addEventListener('input', (e) => {
+                state.angle = parseInt(e.target.value);
+                document.getElementById('angleValue').textContent = state.angle + '°';
+                updatePreview();
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.target.tagName === 'INPUT') return;
+                
+                if (e.key === 'r' || e.key === 'R') {
+                    randomGradient();
+                } else if (e.key === 'c' || e.key === 'C') {
+                    copyCode('css');
+                } else if (e.key === 'ArrowLeft') {
+                    state.angle = (state.angle - 15 + 360) % 360;
+                    document.getElementById('angleSlider').value = state.angle;
+                    document.getElementById('angleValue').textContent = state.angle + '°';
+                    updatePreview();
+                } else if (e.key === 'ArrowRight') {
+                    state.angle = (state.angle + 15) % 360;
+                    document.getElementById('angleSlider').value = state.angle;
+                    document.getElementById('angleValue').textContent = state.angle + '°';
+                    updatePreview();
+                }
+            });
+        }
+
+        function renderColorStops() {
+            const container = document.getElementById('colorStops');
+            container.innerHTML = state.stops.map((stop, i) => `
+                <div class="color-stop">
+                    <input type="color" class="color-input" value="${stop.color}" 
+                           onchange="updateStop(${i}, 'color', this.value)">
+                    <input type="text" class="position-input" value="${stop.color}" 
+                           onchange="updateStop(${i}, 'color', this.value)">
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <input type="number" class="position-input" value="${stop.position}" min="0" max="100"
+                               onchange="updateStop(${i}, 'position', parseInt(this.value))"
+                               style="width: 50px; text-align: right;">
+                        <span class="position-suffix">%</span>
+                    </div>
+                    <button class="remove-stop" onclick="removeStop(${i})" 
+                            ${state.stops.length <= 2 ? 'disabled' : ''}>×</button>
+                </div>
+            `).join('');
+        }
+
+        function renderPresets() {
+            const container = document.getElementById('presets');
+            container.innerHTML = presets.map((preset, i) => {
+                const gradient = buildGradient({ ...state, stops: preset.stops });
+                return `<div class="preset" style="background: ${gradient}" onclick="applyPreset(${i})"></div>`;
+            }).join('');
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('historyGrid');
+            container.innerHTML = history.slice(0, 10).map((item, i) => 
+                `<div class="history-item" style="background: ${item}" onclick="applyHistory(${i})"></div>`
+            ).join('');
+        }
+
+        function updateStop(index, prop, value) {
+            state.stops[index][prop] = value;
+            if (prop === 'color') {
+                renderColorStops();
+            }
+            updatePreview();
+        }
+
+        function addColorStop() {
+            const lastPos = state.stops[state.stops.length - 1].position;
+            const newPos = Math.min(100, lastPos);
+            state.stops.push({
+                color: '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'),
+                position: newPos
+            });
+            state.stops.sort((a, b) => a.position - b.position);
+            renderColorStops();
+            updatePreview();
+        }
+
+        function removeStop(index) {
+            if (state.stops.length <= 2) return;
+            state.stops.splice(index, 1);
+            renderColorStops();
+            updatePreview();
+        }
+
+        function buildGradient(s) {
+            const stops = s.stops.map(st => `${st.color} ${st.position}%`).join(', ');
+            
+            switch (s.type) {
+                case 'linear':
+                    return `linear-gradient(${s.angle}deg, ${stops})`;
+                case 'radial':
+                    return `radial-gradient(circle, ${stops})`;
+                case 'conic':
+                    return `conic-gradient(from ${s.angle}deg, ${stops})`;
+                default:
+                    return `linear-gradient(${s.angle}deg, ${stops})`;
+            }
+        }
+
+        function updatePreview() {
+            const gradient = buildGradient(state);
+            document.getElementById('preview').style.background = gradient;
+            
+            // Update CSS code
+            document.getElementById('cssCode').textContent = `background: ${gradient};`;
+            
+            // Generate approximate Tailwind (only for simple 2-color linear)
+            let tailwind = 'Custom gradient (use arbitrary values)';
+            if (state.type === 'linear' && state.stops.length === 2) {
+                const dir = getDirection(state.angle);
+                tailwind = `bg-gradient-${dir} from-[${state.stops[0].color}] to-[${state.stops[1].color}]`;
+            }
+            document.getElementById('tailwindCode').textContent = tailwind;
+        }
+
+        function getDirection(angle) {
+            if (angle >= 337.5 || angle < 22.5) return 'to-t';
+            if (angle >= 22.5 && angle < 67.5) return 'to-tr';
+            if (angle >= 67.5 && angle < 112.5) return 'to-r';
+            if (angle >= 112.5 && angle < 157.5) return 'to-br';
+            if (angle >= 157.5 && angle < 202.5) return 'to-b';
+            if (angle >= 202.5 && angle < 247.5) return 'to-bl';
+            if (angle >= 247.5 && angle < 292.5) return 'to-l';
+            if (angle >= 292.5 && angle < 337.5) return 'to-tl';
+            return 'to-r';
+        }
+
+        function copyCode(type) {
+            const text = type === 'css' 
+                ? document.getElementById('cssCode').textContent
+                : document.getElementById('tailwindCode').textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Copied to clipboard!');
+                saveToHistory();
+            });
+        }
+
+        function saveToHistory() {
+            const gradient = buildGradient(state);
+            history = [gradient, ...history.filter(h => h !== gradient)].slice(0, 10);
+            localStorage.setItem('gradientHistory', JSON.stringify(history));
+            renderHistory();
+        }
+
+        function clearHistory() {
+            history = [];
+            localStorage.removeItem('gradientHistory');
+            renderHistory();
+        }
+
+        function applyPreset(index) {
+            state.stops = [...presets[index].stops];
+            renderColorStops();
+            updatePreview();
+        }
+
+        function applyHistory(index) {
+            // Parse gradient from history (simplified - just applies it)
+            document.getElementById('preview').style.background = history[index];
+            document.getElementById('cssCode').textContent = `background: ${history[index]};`;
+        }
+
+        function randomGradient() {
+            const numStops = Math.floor(Math.random() * 2) + 2; // 2-3 stops
+            state.stops = [];
+            
+            for (let i = 0; i < numStops; i++) {
+                state.stops.push({
+                    color: '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'),
+                    position: Math.round((i / (numStops - 1)) * 100)
+                });
+            }
+            
+            state.angle = Math.floor(Math.random() * 360);
+            document.getElementById('angleSlider').value = state.angle;
+            document.getElementById('angleValue').textContent = state.angle + '°';
+            
+            renderColorStops();
+            updatePreview();
+            saveToHistory();
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        init();
+    </script>
+</body>
+</html>

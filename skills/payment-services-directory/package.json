@@ -1,0 +1,6 @@
+{
+  "name": "payment-services-directory",
+  "version": "1.0.0",
+  "description": "Payment service discovery for AI agents",
+  "main": "index.js"
+}
