@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regex Tester</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+      min-height: 100vh;
+      color: #fff;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 30px;
+      background: linear-gradient(90deg, #00d9ff, #00ff87);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .regex-input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .regex-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      overflow: hidden;
+    }
+    
+    .regex-slash {
+      padding: 12px 8px;
+      color: #00d9ff;
+      font-family: monospace;
+      font-size: 1.1rem;
+    }
+    
+    .regex-input {
+      flex: 1;
+      padding: 12px 0;
+      border: none;
+      background: transparent;
+      color: #00ff87;
+      font-family: monospace;
+      font-size: 1rem;
+      outline: none;
+    }
+    
+    .flags-input {
+      width: 60px;
+      padding: 12px 8px;
+      border: none;
+      background: transparent;
+      color: #ffd700;
+      font-family: monospace;
+      font-size: 1rem;
+      outline: none;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.7);
+    }
+    
+    textarea {
+      width: 100%;
+      padding: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.3);
+      color: #fff;
+      font-family: monospace;
+      font-size: 0.95rem;
+      resize: vertical;
+      min-height: 120px;
+      outline: none;
+      line-height: 1.6;
+    }
+    
+    textarea:focus {
+      border-color: #00d9ff;
+      box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.2);
+    }
+    
+    .result-area {
+      min-height: 120px;
+      padding: 16px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 0.95rem;
+      line-height: 1.8;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    
+    .match {
+      background: rgba(0, 255, 135, 0.3);
+      border-radius: 3px;
+      padding: 2px 0;
+    }
+    
+    .group {
+      border-bottom: 2px solid #ffd700;
+    }
+    
+    .stats {
+      display: flex;
+      gap: 20px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    
+    .stat {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 10px 16px;
+      border-radius: 8px;
+    }
+    
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #00ff87;
+    }
+    
+    .stat-label {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+    }
+    
+    .error {
+      color: #ff6b6b;
+      padding: 12px;
+      background: rgba(255, 107, 107, 0.1);
+      border-radius: 8px;
+      font-family: monospace;
+    }
+    
+    .presets {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    
+    .preset-btn {
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 0.8rem;
+    }
+    
+    .preset-btn:hover {
+      background: rgba(0, 217, 255, 0.2);
+      border-color: #00d9ff;
+    }
+    
+    .matches-list {
+      margin-top: 16px;
+    }
+    
+    .match-item {
+      display: flex;
+      gap: 12px;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      margin-bottom: 6px;
+      align-items: flex-start;
+    }
+    
+    .match-index {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.8rem;
+      min-width: 30px;
+    }
+    
+    .match-value {
+      color: #00ff87;
+      font-family: monospace;
+      flex: 1;
+      word-break: break-all;
+    }
+    
+    .match-groups {
+      font-size: 0.85rem;
+      color: #ffd700;
+    }
+    
+    .replace-section {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .replace-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.3);
+      color: #ffd700;
+      font-family: monospace;
+      font-size: 1rem;
+      outline: none;
+    }
+    
+    .replace-input:focus {
+      border-color: #ffd700;
+    }
+    
+    .cheatsheet {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    
+    .cheat-item {
+      display: flex;
+      gap: 10px;
+      font-size: 0.85rem;
+    }
+    
+    .cheat-pattern {
+      color: #00ff87;
+      font-family: monospace;
+      min-width: 60px;
+    }
+    
+    .cheat-desc {
+      color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      background: rgba(0, 217, 255, 0.2);
+      border: 1px solid #00d9ff;
+      border-radius: 6px;
+      color: #00d9ff;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.3s;
+    }
+    
+    .btn:hover {
+      background: rgba(0, 217, 255, 0.3);
+    }
+    
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    
+    h3 {
+      font-size: 1rem;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    
+    @media (max-width: 600px) {
+      .regex-input-group {
+        flex-direction: column;
+      }
+      .stats {
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 Regex Tester</h1>
+    
+    <div class="card">
+      <label>Common Patterns</label>
+      <div class="presets">
+        <button class="preset-btn" data-regex="\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b" data-flags="gi">Email</button>
+        <button class="preset-btn" data-regex="https?:\\/\\/[\\w\\-._~:/?#[\\]@!$&'()*+,;=%]+" data-flags="gi">URL</button>
+        <button class="preset-btn" data-regex="\\b\\d{3}[-.]?\\d{3}[-.]?\\d{4}\\b" data-flags="g">Phone</button>
+        <button class="preset-btn" data-regex="\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b" data-flags="g">IP Address</button>
+        <button class="preset-btn" data-regex="#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\\b" data-flags="gi">Hex Color</button>
+        <button class="preset-btn" data-regex="\\d{4}-\\d{2}-\\d{2}" data-flags="g">Date (YYYY-MM-DD)</button>
+        <button class="preset-btn" data-regex="<[^>]+>" data-flags="g">HTML Tags</button>
+      </div>
+      
+      <label>Regular Expression</label>
+      <div class="regex-input-group">
+        <div class="regex-wrapper">
+          <span class="regex-slash">/</span>
+          <input type="text" id="regexInput" class="regex-input" placeholder="your pattern here" autofocus>
+          <span class="regex-slash">/</span>
+          <input type="text" id="flagsInput" class="flags-input" value="gm" placeholder="flags">
+        </div>
+      </div>
+      
+      <label>Test String</label>
+      <textarea id="testString" placeholder="Enter text to test your regex against...">Hello, my email is test@example.com and my backup is user.name+tag@domain.co.uk
+
+You can reach me at 555-123-4567 or visit https://example.com/path?query=1
+
+IP: 192.168.1.100
+Date: 2026-02-11
+Color: #ff5733</textarea>
+    </div>
+    
+    <div class="card">
+      <div class="section-title">
+        <h3>📝 Highlighted Result</h3>
+      </div>
+      <div class="result-area" id="resultArea"></div>
+      
+      <div class="stats" id="stats">
+        <div class="stat">
+          <div class="stat-value" id="matchCount">0</div>
+          <div class="stat-label">Matches</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="groupCount">0</div>
+          <div class="stat-label">Groups</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="section-title">
+        <h3>📋 Match Details</h3>
+        <button class="btn" id="copyMatches">Copy All</button>
+      </div>
+      <div class="matches-list" id="matchesList"></div>
+    </div>
+    
+    <div class="card">
+      <div class="replace-section">
+        <label>Replace Pattern (use $1, $2 for groups)</label>
+        <input type="text" id="replaceInput" class="replace-input" placeholder="Replacement string...">
+        <div class="section-title" style="margin-top: 16px;">
+          <h3>🔄 Replace Result</h3>
+          <button class="btn" id="copyReplace">Copy</button>
+        </div>
+        <div class="result-area" id="replaceResult" style="min-height: 80px;"></div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h3 style="margin-bottom: 16px;">📚 Quick Reference</h3>
+      <div class="cheatsheet">
+        <div class="cheat-item"><span class="cheat-pattern">.</span><span class="cheat-desc">Any character</span></div>
+        <div class="cheat-item"><span class="cheat-pattern">\\d</span><span class="cheat-desc">Digit [0-9]</span></div>
+        <div class="cheat-item"><span class="cheat-pattern">\\w</span><span class="cheat-desc">Word char [a-zA-Z0-9_]</span></div>
+        <div class="cheat-item"><span class="cheat-pattern">\\s</span><span class="cheat-desc">Whitespace</span></div>
+        <div class="cheat-item"><span class="cheat-pattern">^</span><span class="cheat-desc">Start of line</span></div>
+        <div class="cheat-item"><span class="cheat-pattern">$</span><span class="cheat-desc">End of line</span></div>
+        <div class="cheat-item"><span class="cheat-pattern">*</span><span class="cheat-desc">0 or more</span></div>
+        <div class="cheat-item"><span class="cheat-pattern">+</span><span class="cheat-desc">1 or more</span></div>
+        <div class="cheat-item"><span class="cheat-pattern">?</span><span class="cheat-desc">0 or 1</span></div>
+        <div class="cheat-item"><span class="cheat-pattern">{n,m}</span><span class="cheat-desc">n to m times</span></div>
+        <div class="cheat-item"><span class="cheat-pattern">[abc]</span><span class="cheat-desc">Character class</span></div>
+        <div class="cheat-item"><span class="cheat-pattern">(abc)</span><span class="cheat-desc">Capture group</span></div>
+        <div class="cheat-item"><span class="cheat-pattern">(?:abc)</span><span class="cheat-desc">Non-capturing</span></div>
+        <div class="cheat-item"><span class="cheat-pattern">a|b</span><span class="cheat-desc">Alternation</span></div>
+        <div class="cheat-item"><span class="cheat-pattern">\\b</span><span class="cheat-desc">Word boundary</span></div>
+        <div class="cheat-item"><span class="cheat-pattern">(?=abc)</span><span class="cheat-desc">Lookahead</span></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const regexInput = document.getElementById('regexInput');
+    const flagsInput = document.getElementById('flagsInput');
+    const testString = document.getElementById('testString');
+    const resultArea = document.getElementById('resultArea');
+    const matchesList = document.getElementById('matchesList');
+    const replaceInput = document.getElementById('replaceInput');
+    const replaceResult = document.getElementById('replaceResult');
+    const matchCount = document.getElementById('matchCount');
+    const groupCount = document.getElementById('groupCount');
+
+    let lastMatches = [];
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[m]);
+    }
+
+    function updateResults() {
+      const pattern = regexInput.value;
+      const flags = flagsInput.value;
+      const text = testString.value;
+      
+      if (!pattern) {
+        resultArea.innerHTML = escapeHtml(text);
+        matchesList.innerHTML = '<div style="color: rgba(255,255,255,0.5);">Enter a pattern to see matches</div>';
+        replaceResult.textContent = text;
+        matchCount.textContent = '0';
+        groupCount.textContent = '0';
+        lastMatches = [];
+        return;
+      }
+      
+      try {
+        const regex = new RegExp(pattern, flags);
+        const matches = [];
+        let match;
+        
+        // Reset lastIndex for global regex
+        regex.lastIndex = 0;
+        
+        // Collect all matches
+        if (flags.includes('g')) {
+          while ((match = regex.exec(text)) !== null) {
+            matches.push({
+              value: match[0],
+              index: match.index,
+              groups: match.slice(1)
+            });
+            if (match.index === regex.lastIndex) regex.lastIndex++;
+          }
+        } else {
+          match = regex.exec(text);
+          if (match) {
+            matches.push({
+              value: match[0],
+              index: match.index,
+              groups: match.slice(1)
+            });
+          }
+        }
+        
+        lastMatches = matches;
+        
+        // Highlight matches in result area
+        let highlighted = '';
+        let lastIndex = 0;
+        
+        matches.forEach(m => {
+          highlighted += escapeHtml(text.slice(lastIndex, m.index));
+          highlighted += `<span class="match">${escapeHtml(m.value)}</span>`;
+          lastIndex = m.index + m.value.length;
+        });
+        highlighted += escapeHtml(text.slice(lastIndex));
+        
+        resultArea.innerHTML = highlighted || escapeHtml(text);
+        
+        // Update stats
+        matchCount.textContent = matches.length;
+        groupCount.textContent = matches.length > 0 ? matches[0].groups.length : 0;
+        
+        // List matches
+        if (matches.length === 0) {
+          matchesList.innerHTML = '<div style="color: rgba(255,255,255,0.5);">No matches found</div>';
+        } else {
+          matchesList.innerHTML = matches.map((m, i) => `
+            <div class="match-item">
+              <span class="match-index">#${i + 1}</span>
+              <span class="match-value">${escapeHtml(m.value)}</span>
+              ${m.groups.length ? `<span class="match-groups">Groups: ${m.groups.map(g => g || '(empty)').join(', ')}</span>` : ''}
+            </div>
+          `).join('');
+        }
+        
+        // Update replace result
+        updateReplace();
+        
+      } catch (e) {
+        resultArea.innerHTML = `<div class="error">Error: ${escapeHtml(e.message)}</div>`;
+        matchesList.innerHTML = '';
+        replaceResult.textContent = '';
+        matchCount.textContent = '0';
+        groupCount.textContent = '0';
+        lastMatches = [];
+      }
+    }
+
+    function updateReplace() {
+      const pattern = regexInput.value;
+      const flags = flagsInput.value;
+      const text = testString.value;
+      const replacement = replaceInput.value;
+      
+      if (!pattern) {
+        replaceResult.textContent = text;
+        return;
+      }
+      
+      try {
+        const regex = new RegExp(pattern, flags);
+        replaceResult.textContent = text.replace(regex, replacement);
+      } catch (e) {
+        replaceResult.textContent = '';
+      }
+    }
+
+    // Event listeners
+    regexInput.addEventListener('input', updateResults);
+    flagsInput.addEventListener('input', updateResults);
+    testString.addEventListener('input', updateResults);
+    replaceInput.addEventListener('input', updateReplace);
+
+    // Presets
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        regexInput.value = btn.dataset.regex;
+        flagsInput.value = btn.dataset.flags;
+        updateResults();
+      });
+    });
+
+    // Copy buttons
+    document.getElementById('copyMatches').addEventListener('click', () => {
+      const text = lastMatches.map(m => m.value).join('\n');
+      navigator.clipboard.writeText(text);
+    });
+
+    document.getElementById('copyReplace').addEventListener('click', () => {
+      navigator.clipboard.writeText(replaceResult.textContent);
+    });
+
+    // Initial run
+    updateResults();
+  </script>
+</body>
+</html>
