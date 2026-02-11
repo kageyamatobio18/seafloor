@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UUID Generator - ClawdOS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #e4e4e7;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: #a1a1aa;
+            font-size: 1rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+            color: #60a5fa;
+        }
+
+        .options-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .option-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .option-group label {
+            font-size: 0.9rem;
+            color: #a1a1aa;
+        }
+
+        .option-group select,
+        .option-group input[type="number"] {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: #e4e4e7;
+            font-size: 1rem;
+            min-width: 140px;
+        }
+
+        .option-group select:focus,
+        .option-group input:focus {
+            outline: none;
+            border-color: #60a5fa;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            font-size: 0.9rem;
+            color: #a1a1aa;
+            cursor: pointer;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e4e4e7;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .output-area {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 0.95rem;
+            line-height: 1.8;
+            max-height: 400px;
+            overflow-y: auto;
+            word-break: break-all;
+        }
+
+        .uuid-item {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .uuid-item:hover {
+            background: rgba(96, 165, 250, 0.2);
+        }
+
+        .uuid-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .uuid-text {
+            flex: 1;
+            user-select: all;
+        }
+
+        .copy-hint {
+            font-size: 0.8rem;
+            color: #a1a1aa;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .uuid-item:hover .copy-hint {
+            opacity: 1;
+        }
+
+        .uuid-item.copied {
+            background: rgba(34, 197, 94, 0.2);
+        }
+
+        .uuid-item.copied .copy-hint {
+            color: #22c55e;
+            opacity: 1;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            padding: 16px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 16px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #60a5fa;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #a1a1aa;
+        }
+
+        .version-info {
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+        }
+
+        .version-info h3 {
+            font-size: 1rem;
+            margin-bottom: 12px;
+            color: #a78bfa;
+        }
+
+        .version-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .version-card {
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .version-card h4 {
+            font-size: 0.9rem;
+            color: #60a5fa;
+            margin-bottom: 6px;
+        }
+
+        .version-card p {
+            font-size: 0.8rem;
+            color: #a1a1aa;
+            line-height: 1.5;
+        }
+
+        .keyboard-hints {
+            margin-top: 20px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .keyboard-hints span {
+            display: inline-block;
+            margin: 0 12px;
+            color: #a1a1aa;
+            font-size: 0.85rem;
+        }
+
+        kbd {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 0.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #71717a;
+        }
+
+        .empty-state span {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            .options-row {
+                flex-direction: column;
+            }
+
+            .btn-row {
+                flex-direction: column;
+            }
+
+            .btn {
+                justify-content: center;
+            }
+
+            .stats {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔑 UUID Generator</h1>
+            <p>Generate UUIDs, GUIDs, and unique identifiers</p>
+        </header>
+
+        <div class="card">
+            <h2>⚙️ Options</h2>
+            <div class="options-row">
+                <div class="option-group">
+                    <label for="uuidVersion">UUID Version</label>
+                    <select id="uuidVersion">
+                        <option value="4" selected>Version 4 (Random)</option>
+                        <option value="1">Version 1 (Timestamp)</option>
+                        <option value="nano">Nano ID</option>
+                        <option value="ulid">ULID</option>
+                        <option value="cuid">CUID-like</option>
+                    </select>
+                </div>
+                <div class="option-group">
+                    <label for="count">Count</label>
+                    <input type="number" id="count" value="5" min="1" max="100">
+                </div>
+                <div class="option-group">
+                    <label for="format">Format</label>
+                    <select id="format">
+                        <option value="default">Default (with hyphens)</option>
+                        <option value="nohyphens">No Hyphens</option>
+                        <option value="uppercase">Uppercase</option>
+                        <option value="braces">With Braces {}</option>
+                        <option value="urn">URN Format</option>
+                    </select>
+                </div>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-primary" id="generateBtn">
+                    🎲 Generate
+                </button>
+                <button class="btn btn-secondary" id="copyAllBtn">
+                    📋 Copy All
+                </button>
+                <button class="btn btn-secondary" id="clearBtn">
+                    🗑️ Clear
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📝 Generated IDs</h2>
+            <div class="output-area" id="output">
+                <div class="empty-state">
+                    <span>🔑</span>
+                    <p>Click Generate to create UUIDs</p>
+                </div>
+            </div>
+            <div class="stats" id="stats" style="display: none;">
+                <div class="stat">
+                    <div class="stat-value" id="statCount">0</div>
+                    <div class="stat-label">Generated</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="statVersion">-</div>
+                    <div class="stat-label">Version</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="statBits">-</div>
+                    <div class="stat-label">Entropy Bits</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="version-info">
+                <h3>📚 UUID Versions Explained</h3>
+                <div class="version-grid">
+                    <div class="version-card">
+                        <h4>Version 4 (Random)</h4>
+                        <p>Uses cryptographically secure random numbers. Most common choice for unique IDs.</p>
+                    </div>
+                    <div class="version-card">
+                        <h4>Version 1 (Timestamp)</h4>
+                        <p>Based on timestamp and MAC address simulation. Sortable by time.</p>
+                    </div>
+                    <div class="version-card">
+                        <h4>Nano ID</h4>
+                        <p>URL-friendly, compact (21 chars). 126 bits of entropy using a-zA-Z0-9_-</p>
+                    </div>
+                    <div class="version-card">
+                        <h4>ULID</h4>
+                        <p>Universally Unique Lexicographically Sortable Identifier. 26 chars, Crockford base32.</p>
+                    </div>
+                    <div class="version-card">
+                        <h4>CUID-like</h4>
+                        <p>Collision-resistant ID. Starts with 'c', includes timestamp and random components.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="keyboard-hints">
+            <span><kbd>Space</kbd> or <kbd>Enter</kbd> Generate</span>
+            <span><kbd>Ctrl+C</kbd> Copy All</span>
+            <span><kbd>Esc</kbd> Clear</span>
+        </div>
+    </div>
+
+    <script>
+        // UUID Generation Functions
+        function uuidv4() {
+            const bytes = new Uint8Array(16);
+            crypto.getRandomValues(bytes);
+            bytes[6] = (bytes[6] & 0x0f) | 0x40; // Version 4
+            bytes[8] = (bytes[8] & 0x3f) | 0x80; // Variant 1
+            return formatUUID(bytes);
+        }
+
+        function uuidv1() {
+            const now = Date.now();
+            const gregorianOffset = 122192928000000000n; // 100-ns intervals from 1582 to 1970
+            const timestamp = BigInt(now) * 10000n + gregorianOffset;
+            
+            const bytes = new Uint8Array(16);
+            crypto.getRandomValues(bytes);
+            
+            // Time low (4 bytes)
+            const timeLow = Number(timestamp & 0xffffffffn);
+            bytes[0] = (timeLow >> 24) & 0xff;
+            bytes[1] = (timeLow >> 16) & 0xff;
+            bytes[2] = (timeLow >> 8) & 0xff;
+            bytes[3] = timeLow & 0xff;
+            
+            // Time mid (2 bytes)
+            const timeMid = Number((timestamp >> 32n) & 0xffffn);
+            bytes[4] = (timeMid >> 8) & 0xff;
+            bytes[5] = timeMid & 0xff;
+            
+            // Time high and version (2 bytes)
+            const timeHigh = Number((timestamp >> 48n) & 0x0fffn);
+            bytes[6] = ((timeHigh >> 8) & 0x0f) | 0x10; // Version 1
+            bytes[7] = timeHigh & 0xff;
+            
+            // Clock seq and variant
+            bytes[8] = (bytes[8] & 0x3f) | 0x80;
+            
+            return formatUUID(bytes);
+        }
+
+        function formatUUID(bytes) {
+            const hex = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+            return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+        }
+
+        function nanoid(size = 21) {
+            const alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-';
+            const bytes = new Uint8Array(size);
+            crypto.getRandomValues(bytes);
+            return Array.from(bytes).map(b => alphabet[b % alphabet.length]).join('');
+        }
+
+        function ulid() {
+            const ENCODING = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+            const now = Date.now();
+            
+            // Timestamp (10 chars)
+            let time = '';
+            let t = now;
+            for (let i = 0; i < 10; i++) {
+                time = ENCODING[t % 32] + time;
+                t = Math.floor(t / 32);
+            }
+            
+            // Randomness (16 chars)
+            const bytes = new Uint8Array(10);
+            crypto.getRandomValues(bytes);
+            let rand = '';
+            for (const byte of bytes) {
+                rand += ENCODING[byte % 32];
+            }
+            rand = rand.slice(0, 16);
+            
+            return time + rand;
+        }
+
+        function cuid() {
+            const timestamp = Date.now().toString(36);
+            const random = () => {
+                const bytes = new Uint8Array(4);
+                crypto.getRandomValues(bytes);
+                return Array.from(bytes).map(b => b.toString(36)).join('').slice(0, 4);
+            };
+            return 'c' + timestamp + random() + random();
+        }
+
+        function formatOutput(id, format) {
+            switch (format) {
+                case 'nohyphens':
+                    return id.replace(/-/g, '');
+                case 'uppercase':
+                    return id.toUpperCase();
+                case 'braces':
+                    return `{${id}}`;
+                case 'urn':
+                    return `urn:uuid:${id}`;
+                default:
+                    return id;
+            }
+        }
+
+        // DOM Elements
+        const versionSelect = document.getElementById('uuidVersion');
+        const countInput = document.getElementById('count');
+        const formatSelect = document.getElementById('format');
+        const generateBtn = document.getElementById('generateBtn');
+        const copyAllBtn = document.getElementById('copyAllBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const output = document.getElementById('output');
+        const stats = document.getElementById('stats');
+        const statCount = document.getElementById('statCount');
+        const statVersion = document.getElementById('statVersion');
+        const statBits = document.getElementById('statBits');
+
+        let generatedIds = [];
+
+        function generate() {
+            const version = versionSelect.value;
+            const count = Math.min(Math.max(parseInt(countInput.value) || 1, 1), 100);
+            const format = formatSelect.value;
+
+            generatedIds = [];
+            
+            const generators = {
+                '4': uuidv4,
+                '1': uuidv1,
+                'nano': nanoid,
+                'ulid': ulid,
+                'cuid': cuid
+            };
+
+            const entropyBits = {
+                '4': 122,
+                '1': 61,
+                'nano': 126,
+                'ulid': 80,
+                'cuid': '~96'
+            };
+
+            const versionLabels = {
+                '4': 'v4',
+                '1': 'v1',
+                'nano': 'Nano',
+                'ulid': 'ULID',
+                'cuid': 'CUID'
+            };
+
+            const generator = generators[version];
+
+            for (let i = 0; i < count; i++) {
+                const id = generator();
+                const formatted = (version === '4' || version === '1') ? formatOutput(id, format) : id;
+                generatedIds.push(formatted);
+            }
+
+            renderOutput();
+            
+            // Update stats
+            stats.style.display = 'flex';
+            statCount.textContent = count;
+            statVersion.textContent = versionLabels[version];
+            statBits.textContent = entropyBits[version];
+        }
+
+        function renderOutput() {
+            if (generatedIds.length === 0) {
+                output.innerHTML = `
+                    <div class="empty-state">
+                        <span>🔑</span>
+                        <p>Click Generate to create UUIDs</p>
+                    </div>
+                `;
+                stats.style.display = 'none';
+                return;
+            }
+
+            output.innerHTML = generatedIds.map((id, idx) => `
+                <div class="uuid-item" data-idx="${idx}" onclick="copyOne(${idx})">
+                    <span class="uuid-text">${id}</span>
+                    <span class="copy-hint">Click to copy</span>
+                </div>
+            `).join('');
+        }
+
+        async function copyOne(idx) {
+            const id = generatedIds[idx];
+            await navigator.clipboard.writeText(id);
+            
+            const item = document.querySelector(`.uuid-item[data-idx="${idx}"]`);
+            item.classList.add('copied');
+            item.querySelector('.copy-hint').textContent = 'Copied!';
+            
+            setTimeout(() => {
+                item.classList.remove('copied');
+                item.querySelector('.copy-hint').textContent = 'Click to copy';
+            }, 1500);
+        }
+
+        async function copyAll() {
+            if (generatedIds.length === 0) return;
+            await navigator.clipboard.writeText(generatedIds.join('\n'));
+            
+            copyAllBtn.textContent = '✓ Copied!';
+            setTimeout(() => {
+                copyAllBtn.innerHTML = '📋 Copy All';
+            }, 1500);
+        }
+
+        function clearOutput() {
+            generatedIds = [];
+            renderOutput();
+        }
+
+        // Event Listeners
+        generateBtn.addEventListener('click', generate);
+        copyAllBtn.addEventListener('click', copyAll);
+        clearBtn.addEventListener('click', clearOutput);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    generate();
+                }
+                return;
+            }
+            
+            if (e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                generate();
+            } else if (e.key === 'c' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                copyAll();
+            } else if (e.key === 'Escape') {
+                clearOutput();
+            }
+        });
+
+        // Generate on load
+        generate();
+    </script>
+</body>
+</html>
