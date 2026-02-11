@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ES Query Builder</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #00d4aa;
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+        }
+        .panels {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .panel {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .panel h2 {
+            color: #00d4aa;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        .query-type {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .query-type button {
+            padding: 8px 16px;
+            border: 1px solid #00d4aa;
+            background: transparent;
+            color: #00d4aa;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .query-type button:hover, .query-type button.active {
+            background: #00d4aa;
+            color: #1a1a2e;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #888;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        .output {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 300px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            color: #79c0ff;
+        }
+        .btn-copy {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: #00d4aa;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-copy:hover {
+            background: #00b894;
+        }
+        .examples {
+            margin-top: 20px;
+        }
+        .example-item {
+            background: rgba(0,212,170,0.1);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+        .example-item:hover {
+            border-color: #00d4aa;
+        }
+        .example-title {
+            color: #00d4aa;
+            font-weight: bold;
+        }
+        .example-desc {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        @media (max-width: 768px) {
+            .panels { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 ES Query Builder</h1>
+        <p class="subtitle">Visual Elasticsearch Query Constructor</p>
+        
+        <div class="panels">
+            <div class="panel">
+                <h2>Query Builder</h2>
+                <div class="query-type">
+                    <button class="active" data-type="match">Match</button>
+                    <button data-type="term">Term</button>
+                    <button data-type="range">Range</button>
+                    <button data-type="bool">Bool</button>
+                    <button data-type="aggs">Aggregations</button>
+                </div>
+                
+                <div id="matchForm" class="query-form">
+                    <div class="form-group">
+                        <label>Field Name</label>
+                        <input type="text" id="matchField" placeholder="title, description, content...">
+                    </div>
+                    <div class="form-group">
+                        <label>Query Text</label>
+                        <input type="text" id="matchQuery" placeholder="search text...">
+                    </div>
+                    <div class="form-group">
+                        <label>Operator</label>
+                        <select id="matchOperator">
+                            <option value="or">OR (any word)</option>
+                            <option value="and">AND (all words)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="termForm" class="query-form" style="display:none">
+                    <div class="form-group">
+                        <label>Field Name</label>
+                        <input type="text" id="termField" placeholder="status, category...">
+                    </div>
+                    <div class="form-group">
+                        <label>Exact Value</label>
+                        <input type="text" id="termValue" placeholder="active, published...">
+                    </div>
+                </div>
+                
+                <div id="rangeForm" class="query-form" style="display:none">
+                    <div class="form-group">
+                        <label>Field Name</label>
+                        <input type="text" id="rangeField" placeholder="price, date, age...">
+                    </div>
+                    <div class="form-group">
+                        <label>Greater Than (gte)</label>
+                        <input type="text" id="rangeGte" placeholder="10, 2024-01-01...">
+                    </div>
+                    <div class="form-group">
+                        <label>Less Than (lte)</label>
+                        <input type="text" id="rangeLte" placeholder="100, 2024-12-31...">
+                    </div>
+                </div>
+                
+                <div id="boolForm" class="query-form" style="display:none">
+                    <div class="form-group">
+                        <label>Must (AND conditions)</label>
+                        <textarea id="boolMust" placeholder='[{"match": {"title": "elasticsearch"}}]'></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Should (OR conditions)</label>
+                        <textarea id="boolShould" placeholder='[{"term": {"status": "active"}}]'></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Must Not (exclude)</label>
+                        <textarea id="boolMustNot" placeholder='[{"term": {"deleted": true}}]'></textarea>
+                    </div>
+                </div>
+                
+                <div id="aggsForm" class="query-form" style="display:none">
+                    <div class="form-group">
+                        <label>Aggregation Name</label>
+                        <input type="text" id="aggsName" placeholder="by_category, price_stats...">
+                    </div>
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select id="aggsType">
+                            <option value="terms">Terms (group by)</option>
+                            <option value="avg">Average</option>
+                            <option value="sum">Sum</option>
+                            <option value="min">Min</option>
+                            <option value="max">Max</option>
+                            <option value="date_histogram">Date Histogram</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Field</label>
+                        <input type="text" id="aggsField" placeholder="category.keyword, price...">
+                    </div>
+                </div>
+                
+                <div class="examples">
+                    <h3 style="color:#00d4aa; margin-bottom:10px">📚 Examples</h3>
+                    <div class="example-item" onclick="loadExample('fulltext')">
+                        <div class="example-title">Full-text Search</div>
+                        <div class="example-desc">Search across multiple fields with relevance scoring</div>
+                    </div>
+                    <div class="example-item" onclick="loadExample('filter')">
+                        <div class="example-title">Filtered Query</div>
+                        <div class="example-desc">Combine search with filters for precise results</div>
+                    </div>
+                    <div class="example-item" onclick="loadExample('analytics')">
+                        <div class="example-title">Analytics Query</div>
+                        <div class="example-desc">Aggregations for dashboards and reports</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>Generated Query (JSON)</h2>
+                <div class="output" id="output">{
+  "query": {
+    "match_all": {}
+  }
+}</div>
+                <button class="btn-copy" onclick="copyQuery()">📋 Copy to Clipboard</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentType = 'match';
+        
+        document.querySelectorAll('.query-type button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.query-type button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentType = btn.dataset.type;
+                document.querySelectorAll('.query-form').forEach(f => f.style.display = 'none');
+                document.getElementById(currentType + 'Form').style.display = 'block';
+                generateQuery();
+            });
+        });
+        
+        document.querySelectorAll('input, select, textarea').forEach(el => {
+            el.addEventListener('input', generateQuery);
+        });
+        
+        function generateQuery() {
+            let query = {};
+            
+            switch(currentType) {
+                case 'match':
+                    const mField = document.getElementById('matchField').value || 'field';
+                    const mQuery = document.getElementById('matchQuery').value || 'query';
+                    const mOp = document.getElementById('matchOperator').value;
+                    query = {
+                        query: {
+                            match: {
+                                [mField]: {
+                                    query: mQuery,
+                                    operator: mOp
+                                }
+                            }
+                        }
+                    };
+                    break;
+                    
+                case 'term':
+                    const tField = document.getElementById('termField').value || 'field';
+                    const tValue = document.getElementById('termValue').value || 'value';
+                    query = {
+                        query: {
+                            term: {
+                                [tField]: tValue
+                            }
+                        }
+                    };
+                    break;
+                    
+                case 'range':
+                    const rField = document.getElementById('rangeField').value || 'field';
+                    const rGte = document.getElementById('rangeGte').value;
+                    const rLte = document.getElementById('rangeLte').value;
+                    const rangeObj = {};
+                    if (rGte) rangeObj.gte = isNaN(rGte) ? rGte : Number(rGte);
+                    if (rLte) rangeObj.lte = isNaN(rLte) ? rLte : Number(rLte);
+                    query = {
+                        query: {
+                            range: {
+                                [rField]: rangeObj
+                            }
+                        }
+                    };
+                    break;
+                    
+                case 'bool':
+                    const boolQuery = { bool: {} };
+                    try {
+                        const must = document.getElementById('boolMust').value;
+                        const should = document.getElementById('boolShould').value;
+                        const mustNot = document.getElementById('boolMustNot').value;
+                        if (must) boolQuery.bool.must = JSON.parse(must);
+                        if (should) boolQuery.bool.should = JSON.parse(should);
+                        if (mustNot) boolQuery.bool.must_not = JSON.parse(mustNot);
+                    } catch(e) {}
+                    query = { query: boolQuery };
+                    break;
+                    
+                case 'aggs':
+                    const aName = document.getElementById('aggsName').value || 'my_agg';
+                    const aType = document.getElementById('aggsType').value;
+                    const aField = document.getElementById('aggsField').value || 'field';
+                    const aggDef = { field: aField };
+                    if (aType === 'terms') aggDef.size = 10;
+                    if (aType === 'date_histogram') {
+                        aggDef.calendar_interval = 'month';
+                    }
+                    query = {
+                        size: 0,
+                        aggs: {
+                            [aName]: {
+                                [aType]: aggDef
+                            }
+                        }
+                    };
+                    break;
+            }
+            
+            document.getElementById('output').textContent = JSON.stringify(query, null, 2);
+        }
+        
+        function copyQuery() {
+            const text = document.getElementById('output').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.querySelector('.btn-copy');
+                btn.textContent = '✓ Copied!';
+                setTimeout(() => btn.textContent = '📋 Copy to Clipboard', 2000);
+            });
+        }
+        
+        function loadExample(type) {
+            let example;
+            switch(type) {
+                case 'fulltext':
+                    example = {
+                        query: {
+                            multi_match: {
+                                query: "elasticsearch tutorial",
+                                fields: ["title^2", "content", "tags"],
+                                type: "best_fields",
+                                fuzziness: "AUTO"
+                            }
+                        },
+                        highlight: {
+                            fields: {
+                                title: {},
+                                content: {}
+                            }
+                        }
+                    };
+                    break;
+                case 'filter':
+                    example = {
+                        query: {
+                            bool: {
+                                must: [
+                                    { match: { title: "elasticsearch" } }
+                                ],
+                                filter: [
+                                    { term: { status: "published" } },
+                                    { range: { date: { gte: "2024-01-01" } } }
+                                ]
+                            }
+                        }
+                    };
+                    break;
+                case 'analytics':
+                    example = {
+                        size: 0,
+                        query: { match_all: {} },
+                        aggs: {
+                            by_category: {
+                                terms: { field: "category.keyword", size: 10 },
+                                aggs: {
+                                    avg_price: { avg: { field: "price" } },
+                                    total_sales: { sum: { field: "quantity" } }
+                                }
+                            },
+                            monthly_trend: {
+                                date_histogram: {
+                                    field: "created_at",
+                                    calendar_interval: "month"
+                                }
+                            }
+                        }
+                    };
+                    break;
+            }
+            document.getElementById('output').textContent = JSON.stringify(example, null, 2);
+        }
+        
+        generateQuery();
+    </script>
+</body>
+</html>

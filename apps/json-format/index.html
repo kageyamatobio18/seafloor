@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Formatter</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 { text-align: center; color: #ffc107; margin-bottom: 10px; }
+        .subtitle { text-align: center; color: #888; margin-bottom: 20px; }
+        .toolbar {
+            display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; justify-content: center;
+        }
+        .toolbar button {
+            padding: 8px 16px;
+            background: rgba(255,193,7,0.2);
+            border: 1px solid #ffc107;
+            color: #ffc107;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .toolbar button:hover {
+            background: #ffc107;
+            color: #0f0f23;
+        }
+        .panels {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .panel {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .panel-header {
+            background: rgba(255,193,7,0.1);
+            padding: 10px 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .panel-title { color: #ffc107; font-weight: bold; }
+        .stats { font-size: 0.85rem; color: #888; }
+        textarea {
+            width: 100%;
+            min-height: 500px;
+            padding: 15px;
+            background: #0a0a15;
+            border: none;
+            color: #e0e0e0;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 13px;
+            resize: vertical;
+            outline: none;
+        }
+        .output {
+            width: 100%;
+            min-height: 500px;
+            padding: 15px;
+            background: #0a0a15;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 13px;
+            overflow: auto;
+            white-space: pre;
+        }
+        .error { color: #ff6b6b; background: rgba(255,107,107,0.1); padding: 10px; border-radius: 6px; margin: 10px; }
+        .string { color: #a8e6cf; }
+        .number { color: #ffd93d; }
+        .boolean { color: #ff6b6b; }
+        .null { color: #888; }
+        .key { color: #6bcbff; }
+        .bracket { color: #888; }
+        @media (max-width: 900px) { .panels { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>{ } JSON Formatter</h1>
+        <p class="subtitle">Format, validate, and minify JSON</p>
+        
+        <div class="toolbar">
+            <button onclick="formatJSON()">✨ Format</button>
+            <button onclick="minifyJSON()">📦 Minify</button>
+            <button onclick="validateJSON()">✓ Validate</button>
+            <button onclick="copyOutput()">📋 Copy</button>
+            <button onclick="clearAll()">🗑️ Clear</button>
+            <button onclick="loadSample()">📄 Sample</button>
+        </div>
+        
+        <div class="panels">
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="panel-title">Input</span>
+                    <span class="stats" id="inputStats">0 characters</span>
+                </div>
+                <textarea id="input" placeholder="Paste your JSON here..." oninput="updateStats()"></textarea>
+            </div>
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="panel-title">Output</span>
+                    <span class="stats" id="outputStats">0 characters</span>
+                </div>
+                <div class="output" id="output"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function updateStats() {
+            const input = document.getElementById('input').value;
+            document.getElementById('inputStats').textContent = `${input.length} characters`;
+        }
+        
+        function syntaxHighlight(json) {
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                let cls = 'number';
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) {
+                        cls = 'key';
+                    } else {
+                        cls = 'string';
+                    }
+                } else if (/true|false/.test(match)) {
+                    cls = 'boolean';
+                } else if (/null/.test(match)) {
+                    cls = 'null';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+        }
+        
+        function formatJSON() {
+            try {
+                const input = document.getElementById('input').value;
+                const parsed = JSON.parse(input);
+                const formatted = JSON.stringify(parsed, null, 2);
+                document.getElementById('output').innerHTML = syntaxHighlight(formatted);
+                document.getElementById('outputStats').textContent = `${formatted.length} characters`;
+            } catch (e) {
+                document.getElementById('output').innerHTML = '<div class="error">Error: ' + e.message + '</div>';
+            }
+        }
+        
+        function minifyJSON() {
+            try {
+                const input = document.getElementById('input').value;
+                const parsed = JSON.parse(input);
+                const minified = JSON.stringify(parsed);
+                document.getElementById('output').innerHTML = syntaxHighlight(minified);
+                document.getElementById('outputStats').textContent = `${minified.length} characters`;
+            } catch (e) {
+                document.getElementById('output').innerHTML = '<div class="error">Error: ' + e.message + '</div>';
+            }
+        }
+        
+        function validateJSON() {
+            try {
+                const input = document.getElementById('input').value;
+                JSON.parse(input);
+                document.getElementById('output').innerHTML = '<div style="color:#a8e6cf;padding:20px;text-align:center;font-size:1.2rem">✓ Valid JSON!</div>';
+            } catch (e) {
+                document.getElementById('output').innerHTML = '<div class="error">✗ Invalid JSON:<br><br>' + e.message + '</div>';
+            }
+        }
+        
+        function copyOutput() {
+            const output = document.getElementById('output').textContent;
+            navigator.clipboard.writeText(output);
+        }
+        
+        function clearAll() {
+            document.getElementById('input').value = '';
+            document.getElementById('output').innerHTML = '';
+            updateStats();
+            document.getElementById('outputStats').textContent = '0 characters';
+        }
+        
+        function loadSample() {
+            document.getElementById('input').value = JSON.stringify({
+                "name": "Seafloor Agent",
+                "version": "1.0.0",
+                "capabilities": ["search", "code", "analyze"],
+                "settings": {
+                    "darkMode": true,
+                    "maxTokens": 4096,
+                    "temperature": 0.7
+                },
+                "tools": [
+                    {"name": "browser", "enabled": true},
+                    {"name": "exec", "enabled": true}
+                ],
+                "meta": {
+                    "created": "2026-02-06",
+                    "active": true,
+                    "count": null
+                }
+            }, null, 2);
+            updateStats();
+            formatJSON();
+        }
+    </script>
+</body>
+</html>
