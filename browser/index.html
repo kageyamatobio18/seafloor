@@ -1,15 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ClawdOS Browser</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
+    :root {
+      --bg-primary: #0f0f1a;
+      --bg-secondary: #1a1a2e;
+      --bg-tertiary: #252542;
+      --border: #3a3a5c;
+      --accent: #6c5ce7;
+      --accent-light: #a29bfe;
+      --text: #e8e8e8;
+      --text-muted: #888;
+    }
+    
     body {
-      background: #1a1a2e;
-      color: #eee;
+      background: var(--bg-primary);
+      color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       height: 100vh;
       display: flex;
@@ -19,479 +30,631 @@
     
     /* Toolbar */
     .toolbar {
-      background: linear-gradient(180deg, #252542 0%, #1f1f3a 100%);
-      border-bottom: 1px solid #3a3a5c;
-      padding: 10px 16px;
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 12px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       flex-shrink: 0;
     }
     
     .nav-btn {
-      background: #2d2d4a;
-      border: 1px solid #3a3a5c;
-      color: #888;
-      width: 38px;
-      height: 38px;
-      border-radius: 8px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
-      transition: all 0.2s;
+      font-size: 16px;
+      transition: all 0.15s;
+      flex-shrink: 0;
     }
     
     .nav-btn:hover:not(:disabled) {
-      background: #3d3d5c;
-      color: #fff;
-      transform: scale(1.05);
+      background: var(--border);
+      color: var(--text);
     }
     
-    .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .nav-btn:active:not(:disabled) {
+      transform: scale(0.95);
+    }
     
-    .url-bar {
+    .nav-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+    
+    .url-container {
       flex: 1;
       display: flex;
       align-items: center;
-      background: #12121f;
-      border: 2px solid #3a3a5c;
-      border-radius: 12px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
       overflow: hidden;
-      transition: border-color 0.2s;
+      transition: border-color 0.15s;
     }
     
-    .url-bar:focus-within { border-color: #6c5ce7; }
+    .url-container:focus-within {
+      border-color: var(--accent);
+    }
     
     .url-icon {
-      padding: 0 12px;
-      font-size: 16px;
-      color: #6c5ce7;
+      padding: 0 10px;
+      color: var(--accent);
+      font-size: 14px;
+      flex-shrink: 0;
     }
     
     .url-input {
       flex: 1;
       background: transparent;
       border: none;
-      color: #fff;
-      font-size: 15px;
-      padding: 12px 12px 12px 0;
+      color: var(--text);
+      font-size: 14px;
+      padding: 10px 8px 10px 0;
       outline: none;
+      min-width: 0;
     }
     
-    .url-input::placeholder { color: #666; }
+    .url-input::placeholder {
+      color: var(--text-muted);
+    }
     
     .go-btn {
-      background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+      background: var(--accent);
       border: none;
       color: white;
-      padding: 12px 24px;
+      padding: 10px 16px;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
-      transition: all 0.2s;
+      transition: background 0.15s;
+      flex-shrink: 0;
     }
     
-    .go-btn:hover { filter: brightness(1.1); }
+    .go-btn:hover {
+      background: var(--accent-light);
+    }
     
-    /* Tabs */
+    /* Tabs Bar */
     .tabs-bar {
-      background: #12121f;
-      border-bottom: 1px solid #3a3a5c;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
-      padding: 8px 12px;
-      gap: 6px;
+      padding: 6px 8px;
+      gap: 4px;
       flex-shrink: 0;
       overflow-x: auto;
+      scrollbar-width: thin;
     }
     
     .tab {
-      background: #1f1f3a;
-      border: 1px solid #3a3a5c;
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 13px;
-      color: #888;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 12px;
+      color: var(--text-muted);
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 10px;
-      max-width: 200px;
-      min-width: 100px;
-      transition: all 0.2s;
+      gap: 8px;
+      max-width: 180px;
+      min-width: 80px;
+      transition: all 0.15s;
+      flex-shrink: 0;
     }
     
-    .tab:hover { background: #2d2d4a; }
+    .tab:hover {
+      background: var(--border);
+    }
     
     .tab.active {
-      background: linear-gradient(135deg, #2d2d4a 0%, #3d3d5c 100%);
-      color: #fff;
-      border-color: #6c5ce7;
+      background: var(--bg-primary);
+      color: var(--text);
+      border-color: var(--accent);
     }
     
-    .tab-favicon { width: 16px; height: 16px; }
-    .tab-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .tab-close { opacity: 0.5; font-size: 16px; transition: all 0.2s; }
-    .tab-close:hover { opacity: 1; color: #ff6b6b; }
+    .tab-favicon {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+    
+    .tab-title {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .tab-close {
+      opacity: 0.5;
+      font-size: 14px;
+      line-height: 1;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    
+    .tab-close:hover {
+      opacity: 1;
+      color: #ff6b6b;
+    }
     
     .new-tab-btn {
       background: transparent;
-      border: 2px dashed #3a3a5c;
-      color: #888;
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
+      border: 1px dashed var(--border);
+      color: var(--text-muted);
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
       cursor: pointer;
-      font-size: 20px;
-      transition: all 0.2s;
+      font-size: 16px;
+      transition: all 0.15s;
+      flex-shrink: 0;
     }
     
     .new-tab-btn:hover {
-      background: #2d2d4a;
-      border-color: #6c5ce7;
-      color: #6c5ce7;
+      background: var(--bg-tertiary);
+      border-color: var(--accent);
+      color: var(--accent);
     }
     
-    /* Content */
-    .browser-content {
+    /* Main Content */
+    .content {
       flex: 1;
       position: relative;
       overflow: hidden;
-      background: #fff;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Loading Bar */
+    .loading-bar {
+      height: 2px;
+      background: var(--bg-tertiary);
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    
+    .loading-bar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, var(--accent), var(--accent-light), transparent);
+      animation: loading 1.5s ease-in-out infinite;
+      opacity: 0;
+    }
+    
+    .loading-bar.active::after {
+      opacity: 1;
+    }
+    
+    @keyframes loading {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+    
+    /* Frame Container */
+    .frame-container {
+      flex: 1;
+      position: relative;
+      background: white;
     }
     
     .browser-frame {
       width: 100%;
       height: 100%;
       border: none;
-      background: #fff;
+      display: block;
     }
     
     /* Start Page */
     .start-page {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      background: var(--bg-primary);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 40px;
+      padding: 20px;
     }
     
-    .start-page.hidden { display: none; }
+    .start-page.hidden {
+      display: none;
+    }
     
     .start-logo {
-      font-size: 80px;
-      margin-bottom: 16px;
-      animation: float 3s ease-in-out infinite;
-    }
-    
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
+      font-size: 64px;
+      margin-bottom: 12px;
     }
     
     .start-title {
-      font-size: 32px;
-      font-weight: 700;
-      background: linear-gradient(135deg, #6c5ce7, #a29bfe);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 8px;
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 6px;
     }
     
-    .start-subtitle { color: #888; margin-bottom: 48px; font-size: 16px; }
+    .start-subtitle {
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      font-size: 14px;
+    }
     
     .quick-links {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      max-width: 600px;
+      gap: 12px;
+      max-width: 500px;
       width: 100%;
     }
     
-    @media (max-width: 600px) {
-      .quick-links { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 500px) {
+      .quick-links {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
     
     .quick-link {
-      background: rgba(45, 45, 74, 0.6);
-      backdrop-filter: blur(10px);
-      border: 1px solid #3a3a5c;
-      border-radius: 16px;
-      padding: 24px 16px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 12px;
       text-align: center;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: all 0.2s;
     }
     
     .quick-link:hover {
-      background: rgba(108, 92, 231, 0.2);
-      border-color: #6c5ce7;
-      transform: translateY(-4px);
-      box-shadow: 0 10px 30px rgba(108, 92, 231, 0.3);
+      background: var(--bg-tertiary);
+      border-color: var(--accent);
+      transform: translateY(-2px);
     }
     
-    .quick-link-icon { font-size: 36px; margin-bottom: 12px; }
-    .quick-link-name { font-size: 14px; color: #ccc; font-weight: 500; }
+    .quick-link-icon {
+      font-size: 28px;
+      margin-bottom: 6px;
+    }
     
-    /* Loading */
-    .loading-bar {
+    .quick-link-name {
+      font-size: 12px;
+      color: var(--text);
+    }
+    
+    /* Error Page */
+    .error-page {
       position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, #6c5ce7, #a29bfe, #6c5ce7);
-      background-size: 200% 100%;
-      animation: loading 1.5s linear infinite;
-      display: none;
-      z-index: 100;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--bg-primary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      text-align: center;
     }
     
-    .loading-bar.active { display: block; }
+    .error-page.hidden {
+      display: none;
+    }
     
-    @keyframes loading {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
+    .error-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    
+    .error-title {
+      font-size: 20px;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    
+    .error-text {
+      color: var(--text-muted);
+      font-size: 14px;
+      max-width: 400px;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    
+    .error-btn {
+      background: var(--accent);
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      margin: 4px;
+    }
+    
+    .error-btn:hover {
+      background: var(--accent-light);
+    }
+    
+    .error-btn.secondary {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
     }
     
     /* Status Bar */
     .status-bar {
-      background: #12121f;
-      border-top: 1px solid #3a3a5c;
-      padding: 8px 16px;
-      font-size: 12px;
-      color: #666;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      padding: 4px 12px;
+      font-size: 11px;
+      color: var(--text-muted);
       display: flex;
       justify-content: space-between;
-      align-items: center;
-    }
-    
-    .status-bar a { color: #6c5ce7; text-decoration: none; }
-    .status-bar a:hover { text-decoration: underline; }
-    
-    /* Proxy Info Banner */
-    .proxy-banner {
-      background: linear-gradient(135deg, #2d2d4a 0%, #3d3d5c 100%);
-      padding: 8px 16px;
-      font-size: 12px;
-      color: #aaa;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 8px;
-      border-bottom: 1px solid #3a3a5c;
-    }
-    
-    .proxy-banner.hidden { display: none; }
-    
-    .proxy-badge {
-      background: #6c5ce7;
-      color: white;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-weight: 600;
-      font-size: 10px;
+      flex-shrink: 0;
     }
   </style>
 </head>
 <body>
   <div class="toolbar">
-    <button class="nav-btn" id="btn-back" title="Back" disabled>←</button>
-    <button class="nav-btn" id="btn-forward" title="Forward" disabled>→</button>
-    <button class="nav-btn" id="btn-refresh" title="Refresh">↻</button>
+    <button class="nav-btn" id="btn-back" title="Back (Alt+←)" disabled>←</button>
+    <button class="nav-btn" id="btn-forward" title="Forward (Alt+→)" disabled>→</button>
+    <button class="nav-btn" id="btn-refresh" title="Refresh (F5)">↻</button>
     <button class="nav-btn" id="btn-home" title="Home">🏠</button>
     
-    <div class="url-bar">
-      <span class="url-icon">🌐</span>
-      <input type="text" class="url-input" id="url-input" placeholder="Search or enter URL..." autocomplete="off" spellcheck="false" />
+    <div class="url-container">
+      <span class="url-icon">🔒</span>
+      <input type="text" class="url-input" id="url-input" placeholder="Search or enter URL" autocomplete="off" spellcheck="false">
       <button class="go-btn" id="btn-go">Go</button>
     </div>
   </div>
   
   <div class="tabs-bar" id="tabs-bar">
-    <button class="new-tab-btn" id="btn-new-tab" title="New Tab">+</button>
+    <button class="new-tab-btn" id="btn-new-tab" title="New Tab (Ctrl+T)">+</button>
   </div>
   
-  <div class="proxy-banner hidden" id="proxy-banner">
-    <span class="proxy-badge">PROXY</span>
-    <span>Browsing via AllOrigins proxy — some sites may not render perfectly</span>
-  </div>
-  
-  <div class="browser-content" id="content">
+  <div class="content">
     <div class="loading-bar" id="loading-bar"></div>
     
-    <div class="start-page" id="start-page">
-      <div class="start-logo">🦞</div>
-      <h1 class="start-title">ClawdOS Browser</h1>
-      <p class="start-subtitle">The web, right inside ClawdOS</p>
-      <div class="quick-links" id="quick-links">
-        <div class="quick-link" data-url="https://en.wikipedia.org">
-          <div class="quick-link-icon">📚</div>
-          <div class="quick-link-name">Wikipedia</div>
-        </div>
-        <div class="quick-link" data-url="https://news.ycombinator.com">
-          <div class="quick-link-icon">🧡</div>
-          <div class="quick-link-name">Hacker News</div>
-        </div>
-        <div class="quick-link" data-url="https://lite.duckduckgo.com/lite">
-          <div class="quick-link-icon">🔍</div>
-          <div class="quick-link-name">DuckDuckGo</div>
-        </div>
-        <div class="quick-link" data-url="https://text.npr.org">
-          <div class="quick-link-icon">📰</div>
-          <div class="quick-link-name">NPR News</div>
-        </div>
-        <div class="quick-link" data-url="https://old.reddit.com">
-          <div class="quick-link-icon">🤖</div>
-          <div class="quick-link-name">Reddit</div>
-        </div>
-        <div class="quick-link" data-url="https://wttr.in">
-          <div class="quick-link-icon">🌤️</div>
-          <div class="quick-link-name">Weather</div>
-        </div>
-        <div class="quick-link" data-url="https://lobste.rs">
-          <div class="quick-link-icon">🦞</div>
-          <div class="quick-link-name">Lobsters</div>
-        </div>
-        <div class="quick-link" data-url="https://pinboard.in/popular">
-          <div class="quick-link-icon">📌</div>
-          <div class="quick-link-name">Pinboard</div>
+    <div class="frame-container" id="frame-container">
+      <div class="start-page" id="start-page">
+        <div class="start-logo">🌐</div>
+        <h1 class="start-title">ClawdOS Browser</h1>
+        <p class="start-subtitle">Enter a URL or click a quick link to start browsing</p>
+        <div class="quick-links" id="quick-links">
+          <div class="quick-link" data-url="https://en.wikipedia.org">
+            <div class="quick-link-icon">📚</div>
+            <div class="quick-link-name">Wikipedia</div>
+          </div>
+          <div class="quick-link" data-url="https://news.ycombinator.com">
+            <div class="quick-link-icon">🧡</div>
+            <div class="quick-link-name">Hacker News</div>
+          </div>
+          <div class="quick-link" data-url="https://lite.duckduckgo.com/lite">
+            <div class="quick-link-icon">🔍</div>
+            <div class="quick-link-name">Search</div>
+          </div>
+          <div class="quick-link" data-url="https://text.npr.org">
+            <div class="quick-link-icon">📰</div>
+            <div class="quick-link-name">NPR News</div>
+          </div>
+          <div class="quick-link" data-url="https://lobste.rs">
+            <div class="quick-link-icon">🦞</div>
+            <div class="quick-link-name">Lobsters</div>
+          </div>
+          <div class="quick-link" data-url="https://old.reddit.com">
+            <div class="quick-link-icon">🤖</div>
+            <div class="quick-link-name">Reddit</div>
+          </div>
+          <div class="quick-link" data-url="https://wttr.in">
+            <div class="quick-link-icon">🌤️</div>
+            <div class="quick-link-name">Weather</div>
+          </div>
+          <div class="quick-link" data-url="https://pinboard.in/popular">
+            <div class="quick-link-icon">📌</div>
+            <div class="quick-link-name">Pinboard</div>
+          </div>
         </div>
       </div>
+      
+      <div class="error-page hidden" id="error-page">
+        <div class="error-icon">⚠️</div>
+        <h2 class="error-title">Page couldn't be loaded</h2>
+        <p class="error-text" id="error-text">This website blocked being embedded. You can open it in a new tab instead.</p>
+        <div>
+          <button class="error-btn" id="btn-open-new">Open in New Tab</button>
+          <button class="error-btn secondary" id="btn-go-home">Go Home</button>
+        </div>
+      </div>
+      
+      <iframe class="browser-frame" id="frame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox" style="display: none;"></iframe>
     </div>
-    
-    <iframe class="browser-frame" id="frame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
   </div>
   
   <div class="status-bar">
     <span id="status">Ready</span>
-    <span>Built by <a href="https://moltbook.com/u/Seafloor" target="_blank">🦞 Seafloor</a></span>
+    <span id="status-url"></span>
   </div>
   
   <script>
-    // Config
+    // Proxy configuration
     const PROXY_URL = 'https://api.allorigins.win/raw?url=';
     
     // State
-    let tabs = [{ id: 0, url: '', title: 'New Tab', history: [], histIdx: -1 }];
-    let activeTab = 0;
-    let tabIdCounter = 1;
+    let tabs = [createTab()];
+    let activeTabId = tabs[0].id;
+    let tabCounter = 1;
     
-    // DOM
+    // DOM Elements
     const $ = id => document.getElementById(id);
     const urlInput = $('url-input');
     const frame = $('frame');
     const startPage = $('start-page');
+    const errorPage = $('error-page');
     const loadingBar = $('loading-bar');
-    const proxyBanner = $('proxy-banner');
     const tabsBar = $('tabs-bar');
     const statusEl = $('status');
+    const statusUrlEl = $('status-url');
     
-    const getTab = () => tabs.find(t => t.id === activeTab);
+    // Create a new tab object
+    function createTab() {
+      return {
+        id: tabCounter++,
+        url: '',
+        title: 'New Tab',
+        history: [],
+        historyIndex: -1
+      };
+    }
     
-    // URL handling
+    // Get active tab
+    function getActiveTab() {
+      return tabs.find(t => t.id === activeTabId);
+    }
+    
+    // Normalize URL
     function normalizeUrl(input) {
       input = input.trim();
       if (!input) return '';
       
-      // Search query
+      // Search if no dots and not a protocol
       if (!input.includes('.') && !input.startsWith('http')) {
         return 'https://lite.duckduckgo.com/lite?q=' + encodeURIComponent(input);
       }
       
-      if (!input.startsWith('http')) {
+      // Add https if no protocol
+      if (!/^https?:\/\//i.test(input)) {
         input = 'https://' + input;
       }
       
       return input;
     }
     
+    // Get favicon URL
     function getFavicon(url) {
       try {
         const host = new URL(url).hostname;
         return `https://www.google.com/s2/favicons?domain=${host}&sz=32`;
-      } catch { return ''; }
+      } catch {
+        return '';
+      }
     }
     
-    // Tab rendering
+    // Render tabs
     function renderTabs() {
+      // Remove existing tabs
+      tabsBar.querySelectorAll('.tab').forEach(el => el.remove());
+      
       const newTabBtn = $('btn-new-tab');
-      tabsBar.querySelectorAll('.tab').forEach(t => t.remove());
       
       tabs.forEach(tab => {
         const el = document.createElement('div');
-        el.className = 'tab' + (tab.id === activeTab ? ' active' : '');
+        el.className = 'tab' + (tab.id === activeTabId ? ' active' : '');
+        el.dataset.id = tab.id;
         
         const favicon = tab.url ? `<img class="tab-favicon" src="${getFavicon(tab.url)}" onerror="this.style.display='none'">` : '';
-        el.innerHTML = `${favicon}<span class="tab-title">${tab.title || 'New Tab'}</span><span class="tab-close">×</span>`;
+        el.innerHTML = `${favicon}<span class="tab-title">${escapeHtml(tab.title)}</span><span class="tab-close">×</span>`;
         
-        el.querySelector('.tab-title').addEventListener('click', () => switchTab(tab.id));
-        el.querySelector('.tab-close').addEventListener('click', e => {
+        // Click to switch
+        el.addEventListener('click', (e) => {
+          if (!e.target.classList.contains('tab-close')) {
+            switchTab(tab.id);
+          }
+        });
+        
+        // Close button
+        el.querySelector('.tab-close').addEventListener('click', (e) => {
           e.stopPropagation();
           closeTab(tab.id);
         });
         
         tabsBar.insertBefore(el, newTabBtn);
       });
+      
+      updateNavButtons();
     }
     
+    // Escape HTML
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    // Switch to tab
     function switchTab(id) {
-      activeTab = id;
-      const tab = getTab();
-      urlInput.value = tab.url || '';
+      activeTabId = id;
+      const tab = getActiveTab();
+      
+      urlInput.value = tab.url;
       
       if (tab.url) {
+        // Reload the current URL
         loadPage(tab.url, false);
       } else {
-        showStart();
+        showStartPage();
       }
       
       renderTabs();
-      updateNavBtns();
     }
     
+    // Close tab
     function closeTab(id) {
       if (tabs.length === 1) {
-        tabs[0] = { id: 0, url: '', title: 'New Tab', history: [], histIdx: -1 };
-        showStart();
+        // Reset the only tab
+        tabs[0] = createTab();
+        tabs[0].id = 1;
+        activeTabId = 1;
+        showStartPage();
         renderTabs();
         return;
       }
       
-      const idx = tabs.findIndex(t => t.id === id);
-      tabs.splice(idx, 1);
+      const index = tabs.findIndex(t => t.id === id);
+      tabs.splice(index, 1);
       
-      if (activeTab === id) {
-        activeTab = tabs[Math.min(idx, tabs.length - 1)].id;
-        switchTab(activeTab);
+      if (activeTabId === id) {
+        // Switch to adjacent tab
+        const newIndex = Math.min(index, tabs.length - 1);
+        activeTabId = tabs[newIndex].id;
+        switchTab(activeTabId);
       }
       
       renderTabs();
     }
     
+    // Create new tab
     function newTab() {
-      const tab = { id: tabIdCounter++, url: '', title: 'New Tab', history: [], histIdx: -1 };
+      const tab = createTab();
       tabs.push(tab);
-      switchTab(tab.id);
+      activeTabId = tab.id;
+      showStartPage();
+      renderTabs();
       urlInput.focus();
+      urlInput.select();
     }
     
-    // Navigation
-    function navigate(url) {
-      url = normalizeUrl(url);
+    // Navigate to URL
+    function navigate(input) {
+      const url = normalizeUrl(input);
       if (!url) return;
       
-      const tab = getTab();
+      const tab = getActiveTab();
       
-      // Update history
-      if (tab.histIdx < tab.history.length - 1) {
-        tab.history = tab.history.slice(0, tab.histIdx + 1);
+      // Add to history
+      if (tab.historyIndex < tab.history.length - 1) {
+        tab.history = tab.history.slice(0, tab.historyIndex + 1);
       }
       tab.history.push(url);
-      tab.histIdx = tab.history.length - 1;
+      tab.historyIndex = tab.history.length - 1;
       
       tab.url = url;
       urlInput.value = url;
@@ -499,144 +662,204 @@
       loadPage(url, true);
     }
     
-    async function loadPage(url, addToHistory = true) {
-      const tab = getTab();
+    // Load page via proxy
+    async function loadPage(url, updateTab = true) {
+      const tab = getActiveTab();
       
+      // Hide other views, show loading
       startPage.classList.add('hidden');
+      errorPage.classList.add('hidden');
+      frame.style.display = 'none';
       loadingBar.classList.add('active');
-      proxyBanner.classList.remove('hidden');
-      statusEl.textContent = 'Loading ' + new URL(url).hostname + '...';
+      
+      statusEl.textContent = 'Loading...';
+      statusUrlEl.textContent = url;
       
       try {
-        // Fetch via proxy
+        // Fetch via CORS proxy
         const proxyUrl = PROXY_URL + encodeURIComponent(url);
-        const response = await fetch(proxyUrl);
+        const response = await fetch(proxyUrl, {
+          headers: { 'Accept': 'text/html' }
+        });
         
-        if (!response.ok) throw new Error('Failed to fetch');
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
         
         let html = await response.text();
         
-        // Rewrite relative URLs to absolute
-        const baseUrl = new URL(url);
-        const base = baseUrl.origin;
+        // Inject base tag to fix relative URLs
+        const baseUrl = url.endsWith('/') ? url : url.substring(0, url.lastIndexOf('/') + 1) || url + '/';
+        if (!html.includes('<base')) {
+          html = html.replace(/<head([^>]*)>/i, `<head$1><base href="${url}">`);
+        }
         
-        // Inject base tag for relative URLs
-        html = html.replace(/<head([^>]*)>/i, `<head$1><base href="${url}">`);
+        // Extract title
+        const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
+        if (updateTab) {
+          tab.title = titleMatch ? titleMatch[1].trim().substring(0, 40) : new URL(url).hostname;
+        }
         
-        // Create blob URL for the content
-        const blob = new Blob([html], { type: 'text/html' });
+        // Create blob and load in iframe
+        const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
         const blobUrl = URL.createObjectURL(blob);
         
         frame.src = blobUrl;
         frame.style.display = 'block';
         
-        // Update tab title
-        const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-        tab.title = titleMatch ? titleMatch[1].trim().substring(0, 30) : new URL(url).hostname;
-        
+        statusEl.textContent = 'Done';
         renderTabs();
-        statusEl.textContent = 'Loaded';
         
-      } catch (err) {
-        console.error('Load error:', err);
-        
-        // Fallback: try direct iframe load (some sites allow it)
-        frame.src = url;
-        frame.style.display = 'block';
-        tab.title = new URL(url).hostname;
-        renderTabs();
-        statusEl.textContent = 'Loaded (direct)';
-        proxyBanner.classList.add('hidden');
+      } catch (error) {
+        console.error('Load error:', error);
+        showError(url, error.message);
       }
       
       loadingBar.classList.remove('active');
-      updateNavBtns();
+      updateNavButtons();
     }
     
-    function showStart() {
+    // Show start page
+    function showStartPage() {
       startPage.classList.remove('hidden');
+      errorPage.classList.add('hidden');
       frame.style.display = 'none';
       frame.src = 'about:blank';
-      proxyBanner.classList.add('hidden');
+      urlInput.value = '';
       statusEl.textContent = 'Ready';
+      statusUrlEl.textContent = '';
     }
     
-    function updateNavBtns() {
-      const tab = getTab();
-      $('btn-back').disabled = tab.histIdx <= 0;
-      $('btn-forward').disabled = tab.histIdx >= tab.history.length - 1;
+    // Show error page
+    function showError(url, message) {
+      startPage.classList.add('hidden');
+      errorPage.classList.remove('hidden');
+      frame.style.display = 'none';
+      $('error-text').textContent = `Could not load "${new URL(url).hostname}". ${message || 'The site may have blocked embedding.'}`;
+      statusEl.textContent = 'Error';
     }
     
-    // Event listeners
+    // Update navigation buttons
+    function updateNavButtons() {
+      const tab = getActiveTab();
+      $('btn-back').disabled = tab.historyIndex <= 0;
+      $('btn-forward').disabled = tab.historyIndex >= tab.history.length - 1;
+    }
+    
+    // Go back
+    function goBack() {
+      const tab = getActiveTab();
+      if (tab.historyIndex > 0) {
+        tab.historyIndex--;
+        tab.url = tab.history[tab.historyIndex];
+        urlInput.value = tab.url;
+        loadPage(tab.url, false);
+      }
+    }
+    
+    // Go forward
+    function goForward() {
+      const tab = getActiveTab();
+      if (tab.historyIndex < tab.history.length - 1) {
+        tab.historyIndex++;
+        tab.url = tab.history[tab.historyIndex];
+        urlInput.value = tab.url;
+        loadPage(tab.url, false);
+      }
+    }
+    
+    // Event Listeners
     $('btn-go').addEventListener('click', () => navigate(urlInput.value));
-    urlInput.addEventListener('keypress', e => { if (e.key === 'Enter') navigate(urlInput.value); });
     
-    $('btn-back').addEventListener('click', () => {
-      const tab = getTab();
-      if (tab.histIdx > 0) {
-        tab.histIdx--;
-        tab.url = tab.history[tab.histIdx];
-        urlInput.value = tab.url;
-        loadPage(tab.url, false);
+    urlInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        navigate(urlInput.value);
       }
     });
     
-    $('btn-forward').addEventListener('click', () => {
-      const tab = getTab();
-      if (tab.histIdx < tab.history.length - 1) {
-        tab.histIdx++;
-        tab.url = tab.history[tab.histIdx];
-        urlInput.value = tab.url;
-        loadPage(tab.url, false);
-      }
-    });
+    $('btn-back').addEventListener('click', goBack);
+    $('btn-forward').addEventListener('click', goForward);
     
     $('btn-refresh').addEventListener('click', () => {
-      const tab = getTab();
-      if (tab.url) loadPage(tab.url, false);
+      const tab = getActiveTab();
+      if (tab.url) {
+        loadPage(tab.url, false);
+      }
     });
     
     $('btn-home').addEventListener('click', () => {
-      const tab = getTab();
+      const tab = getActiveTab();
       tab.url = '';
       tab.title = 'New Tab';
-      urlInput.value = '';
-      showStart();
+      showStartPage();
       renderTabs();
     });
     
     $('btn-new-tab').addEventListener('click', newTab);
     
-    $('quick-links').querySelectorAll('.quick-link').forEach(link => {
-      link.addEventListener('click', () => navigate(link.dataset.url));
-    });
-    
-    // Handle clicks inside iframe
-    frame.addEventListener('load', () => {
-      try {
-        // Try to intercept link clicks in the iframe
-        const doc = frame.contentDocument;
-        if (doc) {
-          doc.addEventListener('click', e => {
-            const link = e.target.closest('a');
-            if (link && link.href) {
-              e.preventDefault();
-              navigate(link.href);
-            }
-          });
-        }
-      } catch (e) {
-        // Cross-origin, can't intercept
+    // Quick links
+    $('quick-links').addEventListener('click', (e) => {
+      const link = e.target.closest('.quick-link');
+      if (link && link.dataset.url) {
+        navigate(link.dataset.url);
       }
     });
     
-    // Init
-    renderTabs();
-    showStart();
-    urlInput.focus();
+    // Error page buttons
+    $('btn-open-new').addEventListener('click', () => {
+      const tab = getActiveTab();
+      if (tab.url) {
+        window.open(tab.url, '_blank');
+      }
+    });
     
-    // ClawdOS SDK
-    try { if (window.clawd) clawd.ready(); } catch(e) {}
+    $('btn-go-home').addEventListener('click', () => {
+      const tab = getActiveTab();
+      tab.url = '';
+      tab.title = 'New Tab';
+      showStartPage();
+      renderTabs();
+    });
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      // Ctrl+T: New tab
+      if (e.ctrlKey && e.key === 't') {
+        e.preventDefault();
+        newTab();
+      }
+      // Ctrl+W: Close tab
+      if (e.ctrlKey && e.key === 'w') {
+        e.preventDefault();
+        closeTab(activeTabId);
+      }
+      // Alt+Left: Back
+      if (e.altKey && e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goBack();
+      }
+      // Alt+Right: Forward
+      if (e.altKey && e.key === 'ArrowRight') {
+        e.preventDefault();
+        goForward();
+      }
+      // F5: Refresh
+      if (e.key === 'F5') {
+        e.preventDefault();
+        const tab = getActiveTab();
+        if (tab.url) loadPage(tab.url, false);
+      }
+      // Ctrl+L: Focus URL bar
+      if (e.ctrlKey && e.key === 'l') {
+        e.preventDefault();
+        urlInput.focus();
+        urlInput.select();
+      }
+    });
+    
+    // Initialize
+    renderTabs();
+    urlInput.focus();
   </script>
 </body>
 </html>
