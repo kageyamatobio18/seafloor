@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Editor - ClawdOS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #1e1e2e;
+            color: #cdd6f4;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .toolbar {
+            background: #181825;
+            padding: 8px 16px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            border-bottom: 1px solid #313244;
+            flex-wrap: wrap;
+        }
+        
+        .toolbar-group {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+        
+        .toolbar-group::after {
+            content: '';
+            width: 1px;
+            height: 24px;
+            background: #313244;
+            margin: 0 8px;
+        }
+        
+        .toolbar-group:last-child::after { display: none; }
+        
+        button {
+            background: #313244;
+            color: #cdd6f4;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        
+        button:hover { background: #45475a; }
+        button:active { transform: scale(0.97); }
+        button.primary { background: #89b4fa; color: #1e1e2e; }
+        button.primary:hover { background: #b4befe; }
+        button.danger { background: #f38ba8; color: #1e1e2e; }
+        button.danger:hover { background: #eba0ac; }
+        
+        select {
+            background: #313244;
+            color: #cdd6f4;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background: #181825;
+            border-right: 1px solid #313244;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .sidebar-header {
+            padding: 12px 16px;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #a6adc8;
+            border-bottom: 1px solid #313244;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .file-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+        
+        .file-item {
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            margin-bottom: 2px;
+        }
+        
+        .file-item:hover { background: #313244; }
+        .file-item.active { background: #45475a; }
+        
+        .file-icon { font-size: 14px; }
+        .file-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        
+        .file-delete {
+            opacity: 0;
+            font-size: 12px;
+            color: #f38ba8;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        
+        .file-item:hover .file-delete { opacity: 1; }
+        .file-delete:hover { background: #45475a; }
+        
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .tabs {
+            display: flex;
+            background: #181825;
+            border-bottom: 1px solid #313244;
+            overflow-x: auto;
+        }
+        
+        .tab {
+            padding: 10px 16px;
+            font-size: 13px;
+            cursor: pointer;
+            border-right: 1px solid #313244;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 120px;
+            max-width: 200px;
+        }
+        
+        .tab:hover { background: #1e1e2e; }
+        .tab.active { background: #1e1e2e; border-bottom: 2px solid #89b4fa; }
+        .tab.modified .tab-name::after { content: ' •'; color: #f9e2af; }
+        
+        .tab-close {
+            font-size: 14px;
+            opacity: 0.5;
+            margin-left: auto;
+        }
+        
+        .tab-close:hover { opacity: 1; color: #f38ba8; }
+        
+        .editor-wrapper {
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .CodeMirror {
+            height: 100% !important;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 14px;
+        }
+        
+        .status-bar {
+            background: #181825;
+            padding: 6px 16px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #313244;
+            color: #a6adc8;
+        }
+        
+        .status-left, .status-right {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal {
+            background: #1e1e2e;
+            border-radius: 12px;
+            padding: 24px;
+            min-width: 400px;
+            border: 1px solid #313244;
+        }
+        
+        .modal h3 {
+            margin-bottom: 16px;
+            font-size: 18px;
+        }
+        
+        .modal input {
+            width: 100%;
+            padding: 10px 14px;
+            background: #313244;
+            border: 1px solid #45475a;
+            border-radius: 8px;
+            color: #cdd6f4;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        
+        .modal input:focus {
+            outline: none;
+            border-color: #89b4fa;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+        
+        .hidden { display: none !important; }
+        
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #6c7086;
+        }
+        
+        .empty-state-icon { font-size: 64px; margin-bottom: 16px; }
+        .empty-state-text { font-size: 16px; margin-bottom: 8px; }
+        .empty-state-hint { font-size: 13px; }
+        
+        .minimap {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 100px;
+            background: rgba(0,0,0,0.2);
+            pointer-events: none;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar { width: 200px; }
+            .toolbar { padding: 8px; }
+            .tab { min-width: 100px; padding: 8px 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <div class="toolbar-group">
+            <button onclick="newFile()" title="New File (Ctrl+N)">📄 New</button>
+            <button onclick="openFile()" title="Open File (Ctrl+O)">📂 Open</button>
+            <button onclick="saveFile()" class="primary" title="Save (Ctrl+S)">💾 Save</button>
+            <button onclick="downloadFile()" title="Download">⬇️ Download</button>
+        </div>
+        <div class="toolbar-group">
+            <button onclick="editor.undo()" title="Undo (Ctrl+Z)">↩️</button>
+            <button onclick="editor.redo()" title="Redo (Ctrl+Y)">↪️</button>
+        </div>
+        <div class="toolbar-group">
+            <select id="language-select" onchange="changeLanguage(this.value)">
+                <option value="javascript">JavaScript</option>
+                <option value="htmlmixed">HTML</option>
+                <option value="css">CSS</option>
+                <option value="python">Python</option>
+                <option value="markdown">Markdown</option>
+                <option value="sql">SQL</option>
+                <option value="xml">XML</option>
+                <option value="clike">C/C++/Java</option>
+            </select>
+            <select id="theme-select" onchange="changeTheme(this.value)">
+                <option value="dracula">Dracula</option>
+                <option value="monokai">Monokai</option>
+                <option value="material">Material</option>
+                <option value="nord">Nord</option>
+            </select>
+        </div>
+        <div class="toolbar-group">
+            <button onclick="formatCode()" title="Format Code">✨ Format</button>
+            <button onclick="findReplace()" title="Find & Replace (Ctrl+F)">🔍 Find</button>
+        </div>
+    </div>
+    
+    <div class="main-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <span>📁 Files</span>
+                <button onclick="newFile()" style="padding: 4px 8px; font-size: 12px;">+ New</button>
+            </div>
+            <div class="file-list" id="file-list"></div>
+        </div>
+        
+        <div class="editor-container">
+            <div class="tabs" id="tabs"></div>
+            <div class="editor-wrapper" id="editor-wrapper">
+                <div class="empty-state" id="empty-state">
+                    <div class="empty-state-icon">📝</div>
+                    <div class="empty-state-text">No file open</div>
+                    <div class="empty-state-hint">Create a new file or open an existing one</div>
+                </div>
+                <textarea id="editor"></textarea>
+            </div>
+        </div>
+    </div>
+    
+    <div class="status-bar">
+        <div class="status-left">
+            <span id="status-file">No file</span>
+            <span id="status-modified"></span>
+        </div>
+        <div class="status-right">
+            <span id="status-position">Ln 1, Col 1</span>
+            <span id="status-language">JavaScript</span>
+            <span id="status-size">0 bytes</span>
+        </div>
+    </div>
+    
+    <div id="new-file-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <h3>📄 New File</h3>
+            <input type="text" id="new-file-name" placeholder="filename.js" autofocus>
+            <div class="modal-actions">
+                <button onclick="closeModal('new-file-modal')">Cancel</button>
+                <button onclick="createNewFile()" class="primary">Create</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="find-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <h3>🔍 Find & Replace</h3>
+            <input type="text" id="find-input" placeholder="Find...">
+            <input type="text" id="replace-input" placeholder="Replace with...">
+            <div class="modal-actions">
+                <button onclick="closeModal('find-modal')">Close</button>
+                <button onclick="findNext()">Find Next</button>
+                <button onclick="replaceOne()">Replace</button>
+                <button onclick="replaceAll()" class="primary">Replace All</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/markdown/markdown.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/sql/sql.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/search.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/searchcursor.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/dialog/dialog.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/dialog/dialog.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/monokai.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/nord.min.css">
+    
+    <script>
+        let editor;
+        let files = {};
+        let currentFile = null;
+        let openTabs = [];
+        
+        const languageMap = {
+            'js': 'javascript',
+            'ts': 'javascript',
+            'html': 'htmlmixed',
+            'htm': 'htmlmixed',
+            'css': 'css',
+            'py': 'python',
+            'md': 'markdown',
+            'sql': 'sql',
+            'xml': 'xml',
+            'c': 'clike',
+            'cpp': 'clike',
+            'java': 'clike',
+            'json': 'javascript'
+        };
+        
+        const fileIcons = {
+            'js': '📜',
+            'ts': '📘',
+            'html': '🌐',
+            'css': '🎨',
+            'py': '🐍',
+            'md': '📝',
+            'sql': '🗃️',
+            'json': '📋',
+            'default': '📄'
+        };
+        
+        function init() {
+            editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+                mode: 'javascript',
+                theme: 'dracula',
+                lineNumbers: true,
+                autoCloseBrackets: true,
+                matchBrackets: true,
+                indentUnit: 4,
+                tabSize: 4,
+                indentWithTabs: false,
+                lineWrapping: true,
+                extraKeys: {
+                    'Ctrl-S': saveFile,
+                    'Cmd-S': saveFile,
+                    'Ctrl-N': newFile,
+                    'Cmd-N': newFile,
+                    'Ctrl-F': findReplace,
+                    'Cmd-F': findReplace
+                }
+            });
+            
+            editor.on('change', () => {
+                if (currentFile) {
+                    files[currentFile].content = editor.getValue();
+                    files[currentFile].modified = true;
+                    updateUI();
+                }
+            });
+            
+            editor.on('cursorActivity', () => {
+                const cursor = editor.getCursor();
+                document.getElementById('status-position').textContent = 
+                    `Ln ${cursor.line + 1}, Col ${cursor.ch + 1}`;
+            });
+            
+            loadFromStorage();
+            updateUI();
+            
+            if (Object.keys(files).length === 0) {
+                document.querySelector('.CodeMirror').style.display = 'none';
+            }
+        }
+        
+        function loadFromStorage() {
+            const saved = localStorage.getItem('clawdos-editor-files');
+            if (saved) {
+                try {
+                    files = JSON.parse(saved);
+                    const savedTabs = localStorage.getItem('clawdos-editor-tabs');
+                    if (savedTabs) openTabs = JSON.parse(savedTabs);
+                    const savedCurrent = localStorage.getItem('clawdos-editor-current');
+                    if (savedCurrent && files[savedCurrent]) {
+                        openFile(savedCurrent);
+                    }
+                } catch (e) {
+                    files = {};
+                }
+            }
+        }
+        
+        function saveToStorage() {
+            localStorage.setItem('clawdos-editor-files', JSON.stringify(files));
+            localStorage.setItem('clawdos-editor-tabs', JSON.stringify(openTabs));
+            if (currentFile) {
+                localStorage.setItem('clawdos-editor-current', currentFile);
+            }
+        }
+        
+        function newFile() {
+            document.getElementById('new-file-modal').classList.remove('hidden');
+            document.getElementById('new-file-name').value = '';
+            document.getElementById('new-file-name').focus();
+        }
+        
+        function createNewFile() {
+            const name = document.getElementById('new-file-name').value.trim();
+            if (!name) return;
+            
+            if (files[name]) {
+                alert('File already exists!');
+                return;
+            }
+            
+            const ext = name.split('.').pop().toLowerCase();
+            files[name] = {
+                content: '',
+                language: languageMap[ext] || 'javascript',
+                modified: false,
+                created: Date.now()
+            };
+            
+            closeModal('new-file-modal');
+            openFileTab(name);
+            saveToStorage();
+        }
+        
+        function openFile(filename) {
+            if (filename) {
+                openFileTab(filename);
+            } else {
+                // Open file picker
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.js,.ts,.html,.htm,.css,.py,.md,.sql,.xml,.json,.txt,.c,.cpp,.java';
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                            const ext = file.name.split('.').pop().toLowerCase();
+                            files[file.name] = {
+                                content: ev.target.result,
+                                language: languageMap[ext] || 'javascript',
+                                modified: false,
+                                created: Date.now()
+                            };
+                            openFileTab(file.name);
+                            saveToStorage();
+                        };
+                        reader.readAsText(file);
+                    }
+                };
+                input.click();
+            }
+        }
+        
+        function openFileTab(filename) {
+            currentFile = filename;
+            
+            if (!openTabs.includes(filename)) {
+                openTabs.push(filename);
+            }
+            
+            const file = files[filename];
+            editor.setValue(file.content);
+            editor.setOption('mode', file.language);
+            document.getElementById('language-select').value = file.language;
+            
+            document.getElementById('empty-state').classList.add('hidden');
+            document.querySelector('.CodeMirror').style.display = 'block';
+            
+            updateUI();
+            saveToStorage();
+        }
+        
+        function closeTab(filename, event) {
+            if (event) event.stopPropagation();
+            
+            if (files[filename]?.modified) {
+                if (!confirm(`${filename} has unsaved changes. Close anyway?`)) {
+                    return;
+                }
+            }
+            
+            const idx = openTabs.indexOf(filename);
+            if (idx > -1) {
+                openTabs.splice(idx, 1);
+            }
+            
+            if (currentFile === filename) {
+                if (openTabs.length > 0) {
+                    openFileTab(openTabs[Math.max(0, idx - 1)]);
+                } else {
+                    currentFile = null;
+                    editor.setValue('');
+                    document.getElementById('empty-state').classList.remove('hidden');
+                    document.querySelector('.CodeMirror').style.display = 'none';
+                }
+            }
+            
+            updateUI();
+            saveToStorage();
+        }
+        
+        function deleteFile(filename, event) {
+            if (event) event.stopPropagation();
+            
+            if (!confirm(`Delete ${filename}?`)) return;
+            
+            closeTab(filename);
+            delete files[filename];
+            saveToStorage();
+            updateUI();
+        }
+        
+        function saveFile() {
+            if (!currentFile) return;
+            
+            files[currentFile].content = editor.getValue();
+            files[currentFile].modified = false;
+            saveToStorage();
+            updateUI();
+            
+            // Flash save indicator
+            const btn = document.querySelector('.primary');
+            btn.textContent = '✓ Saved';
+            setTimeout(() => btn.innerHTML = '💾 Save', 1000);
+        }
+        
+        function downloadFile() {
+            if (!currentFile) return;
+            
+            const blob = new Blob([editor.getValue()], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = currentFile;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        function changeLanguage(lang) {
+            if (!currentFile) return;
+            editor.setOption('mode', lang);
+            files[currentFile].language = lang;
+            saveToStorage();
+            updateUI();
+        }
+        
+        function changeTheme(theme) {
+            editor.setOption('theme', theme);
+            localStorage.setItem('clawdos-editor-theme', theme);
+        }
+        
+        function formatCode() {
+            if (!currentFile) return;
+            
+            const code = editor.getValue();
+            let formatted = code;
+            
+            try {
+                // Basic formatting for JSON
+                if (files[currentFile].language === 'javascript' && code.trim().startsWith('{')) {
+                    formatted = JSON.stringify(JSON.parse(code), null, 2);
+                }
+            } catch (e) {
+                // Not JSON, leave as-is
+            }
+            
+            editor.setValue(formatted);
+        }
+        
+        function findReplace() {
+            document.getElementById('find-modal').classList.remove('hidden');
+            document.getElementById('find-input').focus();
+        }
+        
+        let searchCursor = null;
+        
+        function findNext() {
+            const query = document.getElementById('find-input').value;
+            if (!query) return;
+            
+            if (!searchCursor || searchCursor.query !== query) {
+                searchCursor = editor.getSearchCursor(query, editor.getCursor());
+                searchCursor.query = query;
+            }
+            
+            if (searchCursor.findNext()) {
+                editor.setSelection(searchCursor.from(), searchCursor.to());
+                editor.scrollIntoView({ from: searchCursor.from(), to: searchCursor.to() });
+            } else {
+                searchCursor = editor.getSearchCursor(query);
+                if (searchCursor.findNext()) {
+                    editor.setSelection(searchCursor.from(), searchCursor.to());
+                }
+            }
+        }
+        
+        function replaceOne() {
+            const query = document.getElementById('find-input').value;
+            const replacement = document.getElementById('replace-input').value;
+            if (!query) return;
+            
+            const selected = editor.getSelection();
+            if (selected === query) {
+                editor.replaceSelection(replacement);
+            }
+            findNext();
+        }
+        
+        function replaceAll() {
+            const query = document.getElementById('find-input').value;
+            const replacement = document.getElementById('replace-input').value;
+            if (!query) return;
+            
+            const cursor = editor.getSearchCursor(query);
+            let count = 0;
+            while (cursor.findNext()) {
+                cursor.replace(replacement);
+                count++;
+            }
+            alert(`Replaced ${count} occurrence(s)`);
+        }
+        
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+        
+        function getFileIcon(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            return fileIcons[ext] || fileIcons.default;
+        }
+        
+        function updateUI() {
+            // Update file list
+            const fileList = document.getElementById('file-list');
+            fileList.innerHTML = Object.keys(files)
+                .sort((a, b) => a.localeCompare(b))
+                .map(name => `
+                    <div class="file-item ${currentFile === name ? 'active' : ''}" 
+                         onclick="openFile('${name}')">
+                        <span class="file-icon">${getFileIcon(name)}</span>
+                        <span class="file-name">${name}</span>
+                        ${files[name].modified ? '<span style="color: #f9e2af;">•</span>' : ''}
+                        <span class="file-delete" onclick="deleteFile('${name}', event)">✕</span>
+                    </div>
+                `).join('');
+            
+            // Update tabs
+            const tabs = document.getElementById('tabs');
+            tabs.innerHTML = openTabs.map(name => `
+                <div class="tab ${currentFile === name ? 'active' : ''} ${files[name]?.modified ? 'modified' : ''}"
+                     onclick="openFile('${name}')">
+                    <span>${getFileIcon(name)}</span>
+                    <span class="tab-name">${name}</span>
+                    <span class="tab-close" onclick="closeTab('${name}', event)">✕</span>
+                </div>
+            `).join('');
+            
+            // Update status bar
+            if (currentFile) {
+                document.getElementById('status-file').textContent = currentFile;
+                document.getElementById('status-modified').textContent = 
+                    files[currentFile]?.modified ? '(modified)' : '';
+                document.getElementById('status-language').textContent = 
+                    document.getElementById('language-select').selectedOptions[0]?.text || '';
+                document.getElementById('status-size').textContent = 
+                    `${(files[currentFile]?.content || '').length} bytes`;
+            } else {
+                document.getElementById('status-file').textContent = 'No file';
+                document.getElementById('status-modified').textContent = '';
+            }
+        }
+        
+        // Handle keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                e.preventDefault();
+                newFile();
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'o') {
+                e.preventDefault();
+                openFile();
+            }
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
+            }
+            if (e.key === 'Enter' && !document.getElementById('new-file-modal').classList.contains('hidden')) {
+                createNewFile();
+            }
+        });
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', init);
+        
+        // Load saved theme
+        const savedTheme = localStorage.getItem('clawdos-editor-theme');
+        if (savedTheme) {
+            document.getElementById('theme-select').value = savedTheme;
+        }
+    </script>
+</body>
+</html>
