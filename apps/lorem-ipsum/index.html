@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lorem Ipsum Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #e4e4e7;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #f472b6, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 0.875rem;
+            color: #a1a1aa;
+            font-weight: 500;
+        }
+
+        select, input[type="number"] {
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            color: #e4e4e7;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        select:focus, input:focus {
+            border-color: #a78bfa;
+            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.2);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-top: 24px;
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #a78bfa;
+            cursor: pointer;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #a78bfa, #818cf8);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(167, 139, 250, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e4e4e7;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .output-header h2 {
+            font-size: 1.25rem;
+            color: #a1a1aa;
+        }
+
+        .stats {
+            display: flex;
+            gap: 16px;
+            font-size: 0.875rem;
+            color: #71717a;
+        }
+
+        .stats span {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .output {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 200px;
+            max-height: 500px;
+            overflow-y: auto;
+            line-height: 1.8;
+            font-size: 1rem;
+            white-space: pre-wrap;
+        }
+
+        .output p {
+            margin-bottom: 1em;
+        }
+
+        .output p:last-child {
+            margin-bottom: 0;
+        }
+
+        .presets {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .preset-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            color: #a1a1aa;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover {
+            background: rgba(167, 139, 250, 0.2);
+            border-color: #a78bfa;
+            color: #e4e4e7;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #10b981;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .shortcuts {
+            font-size: 0.75rem;
+            color: #52525b;
+            text-align: center;
+            margin-top: 16px;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .controls {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .checkbox-group {
+                padding-top: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📝 Lorem Ipsum Generator</h1>
+        
+        <div class="card">
+            <div class="presets">
+                <button class="preset-btn" data-paragraphs="1" data-type="paragraphs">1 Paragraph</button>
+                <button class="preset-btn" data-paragraphs="3" data-type="paragraphs">3 Paragraphs</button>
+                <button class="preset-btn" data-paragraphs="5" data-type="paragraphs">5 Paragraphs</button>
+                <button class="preset-btn" data-paragraphs="5" data-type="sentences">5 Sentences</button>
+                <button class="preset-btn" data-paragraphs="100" data-type="words">100 Words</button>
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <label for="type">Generate</label>
+                    <select id="type">
+                        <option value="paragraphs">Paragraphs</option>
+                        <option value="sentences">Sentences</option>
+                        <option value="words">Words</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="count">Amount</label>
+                    <input type="number" id="count" min="1" max="100" value="3">
+                </div>
+                
+                <div class="control-group">
+                    <label for="style">Style</label>
+                    <select id="style">
+                        <option value="lorem">Classic Lorem Ipsum</option>
+                        <option value="hipster">Hipster Ipsum</option>
+                        <option value="corporate">Corporate Ipsum</option>
+                        <option value="tech">Tech Ipsum</option>
+                    </select>
+                </div>
+                
+                <div class="control-group checkbox-group">
+                    <input type="checkbox" id="startLorem" checked>
+                    <label for="startLorem">Start with "Lorem ipsum..."</label>
+                </div>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-primary" id="generate">
+                    <span>✨</span> Generate
+                </button>
+                <button class="btn btn-secondary" id="copy">
+                    <span>📋</span> Copy
+                </button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="output-header">
+                <h2>Output</h2>
+                <div class="stats">
+                    <span id="wordCount">0 words</span>
+                    <span id="charCount">0 chars</span>
+                </div>
+            </div>
+            <div class="output" id="output">
+                <p>Click "Generate" to create lorem ipsum text...</p>
+            </div>
+        </div>
+        
+        <p class="shortcuts">Keyboard: <kbd>G</kbd> Generate • <kbd>C</kbd> Copy</p>
+    </div>
+    
+    <div class="toast" id="toast">Copied to clipboard!</div>
+
+    <script>
+        // Word banks for different styles
+        const wordBanks = {
+            lorem: [
+                'lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit',
+                'sed', 'do', 'eiusmod', 'tempor', 'incididunt', 'ut', 'labore', 'et', 'dolore',
+                'magna', 'aliqua', 'enim', 'ad', 'minim', 'veniam', 'quis', 'nostrud',
+                'exercitation', 'ullamco', 'laboris', 'nisi', 'aliquip', 'ex', 'ea', 'commodo',
+                'consequat', 'duis', 'aute', 'irure', 'in', 'reprehenderit', 'voluptate',
+                'velit', 'esse', 'cillum', 'fugiat', 'nulla', 'pariatur', 'excepteur', 'sint',
+                'occaecat', 'cupidatat', 'non', 'proident', 'sunt', 'culpa', 'qui', 'officia',
+                'deserunt', 'mollit', 'anim', 'id', 'est', 'laborum', 'at', 'vero', 'eos',
+                'accusamus', 'dignissimos', 'ducimus', 'blanditiis', 'praesentium', 'voluptatum',
+                'deleniti', 'atque', 'corrupti', 'quos', 'dolores', 'quas', 'molestias'
+            ],
+            hipster: [
+                'artisan', 'sustainable', 'vinyl', 'craft', 'beer', 'organic', 'locally',
+                'sourced', 'farm-to-table', 'kombucha', 'avocado', 'toast', 'cold-pressed',
+                'juice', 'aesthetic', 'vegan', 'kale', 'quinoa', 'mindful', 'curated',
+                'authentic', 'handcrafted', 'bespoke', 'retro', 'vintage', 'minimal',
+                'pour-over', 'coffee', 'single-origin', 'matcha', 'sourdough', 'fermented',
+                'activated', 'charcoal', 'wellness', 'mindfulness', 'meditation', 'yoga',
+                'chakra', 'energy', 'vibes', 'intentional', 'conscious', 'ethical', 'slow',
+                'living', 'hygge', 'cozy', 'plant-based', 'eco-friendly', 'zero-waste',
+                'upcycled', 'reclaimed', 'raw', 'natural', 'holistic', 'balanced'
+            ],
+            corporate: [
+                'synergy', 'leverage', 'stakeholder', 'paradigm', 'bandwidth', 'deliverables',
+                'action', 'items', 'circle', 'back', 'deep', 'dive', 'move', 'needle',
+                'low-hanging', 'fruit', 'core', 'competency', 'best', 'practices', 'key',
+                'performance', 'indicators', 'ROI', 'scalable', 'solutions', 'strategic',
+                'alignment', 'value', 'proposition', 'thought', 'leader', 'disrupt', 'innovate',
+                'ecosystem', 'vertical', 'horizontal', 'integration', 'holistic', 'approach',
+                'cross-functional', 'team', 'agile', 'lean', 'pivot', 'runway', 'burn', 'rate',
+                'bottom', 'line', 'top', 'mind', 'proactive', 'optimize', 'streamline'
+            ],
+            tech: [
+                'blockchain', 'AI', 'machine', 'learning', 'neural', 'network', 'algorithm',
+                'data', 'analytics', 'cloud', 'native', 'microservices', 'kubernetes', 'docker',
+                'serverless', 'edge', 'computing', 'API', 'endpoint', 'REST', 'GraphQL',
+                'scalability', 'redundancy', 'latency', 'throughput', 'sprint', 'backlog',
+                'MVP', 'iteration', 'deployment', 'CI/CD', 'pipeline', 'container', 'orchestration',
+                'infrastructure', 'code', 'automation', 'DevOps', 'SRE', 'observability',
+                'metrics', 'logging', 'monitoring', 'tracing', 'incident', 'response', 'SLA',
+                'uptime', 'resilience', 'fault', 'tolerance', 'encryption', 'authentication'
+            ]
+        };
+
+        const loremStart = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
+
+        function getRandomWord(style) {
+            const words = wordBanks[style];
+            return words[Math.floor(Math.random() * words.length)];
+        }
+
+        function capitalizeFirst(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        function generateSentence(style, minWords = 8, maxWords = 16) {
+            const length = Math.floor(Math.random() * (maxWords - minWords + 1)) + minWords;
+            const words = [];
+            
+            for (let i = 0; i < length; i++) {
+                words.push(getRandomWord(style));
+            }
+            
+            return capitalizeFirst(words.join(' ')) + '.';
+        }
+
+        function generateParagraph(style, minSentences = 4, maxSentences = 8) {
+            const length = Math.floor(Math.random() * (maxSentences - minSentences + 1)) + minSentences;
+            const sentences = [];
+            
+            for (let i = 0; i < length; i++) {
+                sentences.push(generateSentence(style));
+            }
+            
+            return sentences.join(' ');
+        }
+
+        function generate() {
+            const type = document.getElementById('type').value;
+            const count = parseInt(document.getElementById('count').value) || 3;
+            const style = document.getElementById('style').value;
+            const startWithLorem = document.getElementById('startLorem').checked;
+            
+            let result = [];
+            
+            if (type === 'paragraphs') {
+                for (let i = 0; i < count; i++) {
+                    let para = generateParagraph(style);
+                    if (i === 0 && startWithLorem && style === 'lorem') {
+                        para = loremStart + '. ' + para;
+                    }
+                    result.push(para);
+                }
+                document.getElementById('output').innerHTML = result.map(p => `<p>${p}</p>`).join('');
+            } else if (type === 'sentences') {
+                for (let i = 0; i < count; i++) {
+                    let sentence = generateSentence(style);
+                    if (i === 0 && startWithLorem && style === 'lorem') {
+                        sentence = loremStart + '. ' + sentence;
+                    }
+                    result.push(sentence);
+                }
+                document.getElementById('output').innerHTML = `<p>${result.join(' ')}</p>`;
+            } else {
+                const words = [];
+                if (startWithLorem && style === 'lorem') {
+                    words.push(...loremStart.split(' '));
+                }
+                while (words.length < count) {
+                    words.push(getRandomWord(style));
+                }
+                result = words.slice(0, count);
+                document.getElementById('output').innerHTML = `<p>${capitalizeFirst(result.join(' '))}.</p>`;
+            }
+            
+            updateStats();
+        }
+
+        function updateStats() {
+            const text = document.getElementById('output').textContent;
+            const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+            document.getElementById('wordCount').textContent = `${words.length} words`;
+            document.getElementById('charCount').textContent = `${text.length} chars`;
+        }
+
+        function copyToClipboard() {
+            const text = document.getElementById('output').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Copied to clipboard!');
+            });
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // Event listeners
+        document.getElementById('generate').addEventListener('click', generate);
+        document.getElementById('copy').addEventListener('click', copyToClipboard);
+
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('count').value = btn.dataset.paragraphs;
+                document.getElementById('type').value = btn.dataset.type;
+                generate();
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+            
+            if (e.key.toLowerCase() === 'g') {
+                generate();
+            } else if (e.key.toLowerCase() === 'c') {
+                copyToClipboard();
+            }
+        });
+
+        // Generate on load
+        generate();
+    </script>
+</body>
+</html>
