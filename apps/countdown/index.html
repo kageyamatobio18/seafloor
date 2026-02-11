@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Countdown Timer</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      min-height: 100vh;
+      color: #fff;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 30px;
+      background: linear-gradient(90deg, #f093fb, #f5576c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .form-group {
+      margin-bottom: 16px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.8);
+    }
+    
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      font-size: 1rem;
+      transition: all 0.3s;
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: #f5576c;
+      box-shadow: 0 0 0 3px rgba(245, 87, 108, 0.2);
+    }
+    
+    input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+    }
+    
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: 600;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #f093fb, #f5576c);
+      color: #fff;
+      width: 100%;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(245, 87, 108, 0.3);
+    }
+    
+    .btn-danger {
+      background: rgba(255, 87, 87, 0.2);
+      color: #ff5757;
+      border: 1px solid rgba(255, 87, 87, 0.3);
+    }
+    
+    .btn-danger:hover {
+      background: rgba(255, 87, 87, 0.3);
+    }
+    
+    .countdown-display {
+      text-align: center;
+      padding: 30px;
+    }
+    
+    .countdown-title {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .countdown-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .time-unit {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 20px 10px;
+    }
+    
+    .time-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #f093fb, #f5576c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .time-label {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .target-date {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+    
+    .finished {
+      font-size: 2rem;
+      color: #4ade80;
+      animation: pulse 1s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .saved-list {
+      margin-top: 20px;
+    }
+    
+    .saved-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .saved-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .saved-item-info {
+      flex: 1;
+    }
+    
+    .saved-item-title {
+      font-weight: 600;
+    }
+    
+    .saved-item-date {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .saved-item-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 0.8rem;
+    }
+    
+    .empty-state {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.5);
+      padding: 20px;
+    }
+    
+    .quick-presets {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    
+    .preset-btn {
+      padding: 8px 16px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 0.85rem;
+    }
+    
+    .preset-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .shortcuts {
+      text-align: center;
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.4);
+      margin-top: 20px;
+    }
+    
+    .hidden { display: none; }
+    
+    @media (max-width: 500px) {
+      .countdown-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .time-value {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⏰ Countdown Timer</h1>
+    
+    <!-- Create Form -->
+    <div class="card" id="createForm">
+      <div class="form-group">
+        <label for="eventName">Event Name</label>
+        <input type="text" id="eventName" placeholder="Birthday, Launch Day, Vacation..." autofocus>
+      </div>
+      
+      <label>Quick Presets</label>
+      <div class="quick-presets">
+        <button class="preset-btn" data-minutes="5">5 min</button>
+        <button class="preset-btn" data-minutes="15">15 min</button>
+        <button class="preset-btn" data-minutes="30">30 min</button>
+        <button class="preset-btn" data-minutes="60">1 hour</button>
+        <button class="preset-btn" data-days="1">Tomorrow</button>
+        <button class="preset-btn" data-days="7">1 week</button>
+      </div>
+      
+      <div class="form-group">
+        <label for="targetDate">Or Choose Date & Time</label>
+        <input type="datetime-local" id="targetDate">
+      </div>
+      
+      <button class="btn btn-primary" id="createBtn">Start Countdown</button>
+    </div>
+    
+    <!-- Active Countdown -->
+    <div class="card hidden" id="activeCountdown">
+      <div class="countdown-display">
+        <div class="countdown-title" id="displayTitle">Countdown</div>
+        <div class="target-date" id="displayDate"></div>
+        <div class="countdown-grid" id="countdownGrid">
+          <div class="time-unit">
+            <div class="time-value" id="days">00</div>
+            <div class="time-label">Days</div>
+          </div>
+          <div class="time-unit">
+            <div class="time-value" id="hours">00</div>
+            <div class="time-label">Hours</div>
+          </div>
+          <div class="time-unit">
+            <div class="time-value" id="minutes">00</div>
+            <div class="time-label">Minutes</div>
+          </div>
+          <div class="time-unit">
+            <div class="time-value" id="seconds">00</div>
+            <div class="time-label">Seconds</div>
+          </div>
+        </div>
+        <div class="finished hidden" id="finishedMsg">🎉 Time's Up!</div>
+        <button class="btn btn-danger" id="stopBtn">Stop & Clear</button>
+      </div>
+    </div>
+    
+    <!-- Saved Countdowns -->
+    <div class="card">
+      <h3 style="margin-bottom: 16px;">💾 Saved Countdowns</h3>
+      <div id="savedList" class="saved-list">
+        <div class="empty-state">No saved countdowns yet</div>
+      </div>
+    </div>
+    
+    <div class="shortcuts">
+      <strong>Keyboard:</strong> Enter = Start/Save · Escape = Stop · S = Save current
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      active: null,
+      interval: null,
+      saved: JSON.parse(localStorage.getItem('countdowns') || '[]')
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    // Elements
+    const createForm = $('createForm');
+    const activeCountdown = $('activeCountdown');
+    const eventNameInput = $('eventName');
+    const targetDateInput = $('targetDate');
+    const createBtn = $('createBtn');
+    const stopBtn = $('stopBtn');
+    const displayTitle = $('displayTitle');
+    const displayDate = $('displayDate');
+    const countdownGrid = $('countdownGrid');
+    const finishedMsg = $('finishedMsg');
+    const savedList = $('savedList');
+
+    // Initialize datetime-local min to now
+    function setMinDate() {
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      targetDateInput.min = now.toISOString().slice(0, 16);
+    }
+    setMinDate();
+
+    // Presets
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const minutes = btn.dataset.minutes;
+        const days = btn.dataset.days;
+        const now = new Date();
+        
+        if (minutes) {
+          now.setMinutes(now.getMinutes() + parseInt(minutes));
+        } else if (days) {
+          now.setDate(now.getDate() + parseInt(days));
+          now.setHours(9, 0, 0, 0); // Set to 9 AM
+        }
+        
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        targetDateInput.value = now.toISOString().slice(0, 16);
+      });
+    });
+
+    // Create countdown
+    createBtn.addEventListener('click', startCountdown);
+
+    function startCountdown() {
+      const name = eventNameInput.value.trim() || 'Countdown';
+      const target = new Date(targetDateInput.value);
+      
+      if (!targetDateInput.value || target <= new Date()) {
+        alert('Please select a future date and time');
+        return;
+      }
+      
+      state.active = { name, target: target.getTime() };
+      
+      displayTitle.textContent = name;
+      displayDate.textContent = target.toLocaleString();
+      
+      createForm.classList.add('hidden');
+      activeCountdown.classList.remove('hidden');
+      countdownGrid.classList.remove('hidden');
+      finishedMsg.classList.add('hidden');
+      
+      updateCountdown();
+      state.interval = setInterval(updateCountdown, 1000);
+    }
+
+    function updateCountdown() {
+      if (!state.active) return;
+      
+      const now = Date.now();
+      const diff = state.active.target - now;
+      
+      if (diff <= 0) {
+        clearInterval(state.interval);
+        countdownGrid.classList.add('hidden');
+        finishedMsg.classList.remove('hidden');
+        playSound();
+        return;
+      }
+      
+      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((diff % (1000 * 60)) / 1000);
+      
+      $('days').textContent = String(d).padStart(2, '0');
+      $('hours').textContent = String(h).padStart(2, '0');
+      $('minutes').textContent = String(m).padStart(2, '0');
+      $('seconds').textContent = String(s).padStart(2, '0');
+    }
+
+    function playSound() {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      
+      osc.frequency.value = 800;
+      gain.gain.value = 0.3;
+      
+      osc.start();
+      
+      // Beep pattern
+      setTimeout(() => gain.gain.value = 0, 200);
+      setTimeout(() => gain.gain.value = 0.3, 400);
+      setTimeout(() => gain.gain.value = 0, 600);
+      setTimeout(() => gain.gain.value = 0.3, 800);
+      setTimeout(() => {
+        osc.stop();
+        audioCtx.close();
+      }, 1000);
+    }
+
+    // Stop countdown
+    stopBtn.addEventListener('click', stopCountdown);
+
+    function stopCountdown() {
+      clearInterval(state.interval);
+      state.active = null;
+      activeCountdown.classList.add('hidden');
+      createForm.classList.remove('hidden');
+      eventNameInput.value = '';
+      targetDateInput.value = '';
+      setMinDate();
+    }
+
+    // Save/load
+    function saveCountdown() {
+      if (!state.active) return;
+      
+      const exists = state.saved.find(s => 
+        s.name === state.active.name && s.target === state.active.target
+      );
+      
+      if (!exists) {
+        state.saved.unshift({ ...state.active });
+        if (state.saved.length > 10) state.saved.pop();
+        localStorage.setItem('countdowns', JSON.stringify(state.saved));
+        renderSaved();
+      }
+    }
+
+    function renderSaved() {
+      if (state.saved.length === 0) {
+        savedList.innerHTML = '<div class="empty-state">No saved countdowns yet</div>';
+        return;
+      }
+      
+      savedList.innerHTML = state.saved.map((item, i) => `
+        <div class="saved-item">
+          <div class="saved-item-info" data-index="${i}">
+            <div class="saved-item-title">${escapeHtml(item.name)}</div>
+            <div class="saved-item-date">${new Date(item.target).toLocaleString()}</div>
+          </div>
+          <div class="saved-item-actions">
+            <button class="btn btn-danger btn-sm" data-delete="${i}">✕</button>
+          </div>
+        </div>
+      `).join('');
+      
+      // Click to load
+      savedList.querySelectorAll('.saved-item-info').forEach(el => {
+        el.addEventListener('click', () => {
+          const item = state.saved[el.dataset.index];
+          state.active = { ...item };
+          
+          displayTitle.textContent = item.name;
+          displayDate.textContent = new Date(item.target).toLocaleString();
+          
+          createForm.classList.add('hidden');
+          activeCountdown.classList.remove('hidden');
+          countdownGrid.classList.remove('hidden');
+          finishedMsg.classList.add('hidden');
+          
+          clearInterval(state.interval);
+          updateCountdown();
+          state.interval = setInterval(updateCountdown, 1000);
+        });
+      });
+      
+      // Delete
+      savedList.querySelectorAll('[data-delete]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          state.saved.splice(parseInt(btn.dataset.delete), 1);
+          localStorage.setItem('countdowns', JSON.stringify(state.saved));
+          renderSaved();
+        });
+      });
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[m]);
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !activeCountdown.classList.contains('hidden')) {
+        saveCountdown();
+      } else if (e.key === 'Enter' && createForm.contains(document.activeElement)) {
+        startCountdown();
+      } else if (e.key === 'Escape') {
+        stopCountdown();
+      } else if (e.key === 's' || e.key === 'S') {
+        if (!e.ctrlKey && !e.metaKey && state.active) {
+          e.preventDefault();
+          saveCountdown();
+        }
+      }
+    });
+
+    // Init
+    renderSaved();
+  </script>
+</body>
+</html>
