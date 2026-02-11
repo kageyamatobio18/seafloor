@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base64 Tool - ClawdOS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #0d1117 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e1e1e1;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #00d4ff, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 0.95rem;
+        }
+
+        .mode-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 0;
+            margin-bottom: 25px;
+        }
+
+        .mode-toggle button {
+            padding: 12px 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: #888;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mode-toggle button:first-child {
+            border-radius: 8px 0 0 8px;
+        }
+
+        .mode-toggle button:last-child {
+            border-radius: 0 8px 8px 0;
+            border-left: none;
+        }
+
+        .mode-toggle button.active {
+            background: linear-gradient(135deg, #00d4ff, #7c3aed);
+            border-color: transparent;
+            color: white;
+        }
+
+        .tool-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .section-header h2 {
+            font-size: 1.1rem;
+            color: #888;
+        }
+
+        .section-header .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .section-header button {
+            padding: 6px 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: #888;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .section-header button:hover {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: rgba(0, 212, 255, 0.3);
+            color: #00d4ff;
+        }
+
+        textarea {
+            width: 100%;
+            height: 180px;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #e1e1e1;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            line-height: 1.5;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+        }
+
+        textarea::placeholder {
+            color: #555;
+        }
+
+        .arrow {
+            text-align: center;
+            padding: 15px 0;
+            font-size: 2rem;
+            color: #444;
+        }
+
+        .status {
+            margin-top: 15px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .status.success {
+            display: block;
+            background: rgba(52, 199, 89, 0.1);
+            border: 1px solid rgba(52, 199, 89, 0.3);
+            color: #34c759;
+        }
+
+        .status.error {
+            display: block;
+            background: rgba(255, 59, 48, 0.1);
+            border: 1px solid rgba(255, 59, 48, 0.3);
+            color: #ff3b30;
+        }
+
+        .file-drop {
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 20px;
+        }
+
+        .file-drop:hover, .file-drop.dragover {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .file-drop .icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .file-drop p {
+            color: #888;
+        }
+
+        .file-drop input {
+            display: none;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .stat {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+
+        .stat .label {
+            color: #666;
+            margin-right: 8px;
+        }
+
+        .stat .value {
+            color: #00d4ff;
+            font-weight: 500;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+        }
+
+        .tabs button {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.02);
+            color: #666;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tabs button:first-child {
+            border-radius: 8px 0 0 8px;
+        }
+
+        .tabs button:last-child {
+            border-radius: 0 8px 8px 0;
+        }
+
+        .tabs button:not(:first-child) {
+            border-left: none;
+        }
+
+        .tabs button.active {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: rgba(0, 212, 255, 0.3);
+            color: #00d4ff;
+        }
+
+        .shortcuts {
+            margin-top: 30px;
+            text-align: center;
+            color: #555;
+            font-size: 0.8rem;
+        }
+
+        .shortcuts kbd {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin: 0 2px;
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 1.8rem; }
+            .stats { flex-direction: column; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔐 Base64 Tool</h1>
+            <p class="subtitle">Encode & decode Base64 strings and files</p>
+        </header>
+
+        <div class="mode-toggle">
+            <button id="encodeBtn" class="active" onclick="setMode('encode')">Encode</button>
+            <button id="decodeBtn" onclick="setMode('decode')">Decode</button>
+        </div>
+
+        <div class="tabs">
+            <button id="textTab" class="active" onclick="setInputType('text')">📝 Text</button>
+            <button id="fileTab" onclick="setInputType('file')">📁 File</button>
+        </div>
+
+        <div id="textInput">
+            <div class="tool-section">
+                <div class="section-header">
+                    <h2 id="inputLabel">Text to Encode</h2>
+                    <div class="btn-group">
+                        <button onclick="clearInput()">Clear</button>
+                        <button onclick="pasteInput()">Paste</button>
+                    </div>
+                </div>
+                <textarea id="input" placeholder="Enter text here..."></textarea>
+            </div>
+        </div>
+
+        <div id="fileInput" style="display: none;">
+            <div class="file-drop" id="dropZone" onclick="document.getElementById('fileSelect').click()">
+                <div class="icon">📁</div>
+                <p>Drop a file here or click to select</p>
+                <input type="file" id="fileSelect" onchange="handleFile(this.files[0])">
+            </div>
+            <div id="fileInfo" style="display: none;" class="tool-section">
+                <p><strong>File:</strong> <span id="fileName"></span></p>
+                <p><strong>Size:</strong> <span id="fileSize"></span></p>
+                <p><strong>Type:</strong> <span id="fileType"></span></p>
+            </div>
+        </div>
+
+        <div class="arrow">⬇️</div>
+
+        <div class="tool-section">
+            <div class="section-header">
+                <h2 id="outputLabel">Base64 Output</h2>
+                <div class="btn-group">
+                    <button onclick="copyOutput()">Copy</button>
+                    <button onclick="downloadOutput()">Download</button>
+                </div>
+            </div>
+            <textarea id="output" placeholder="Result will appear here..." readonly></textarea>
+            <div class="stats">
+                <div class="stat">
+                    <span class="label">Input:</span>
+                    <span class="value" id="inputSize">0 chars</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Output:</span>
+                    <span class="value" id="outputSize">0 chars</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Ratio:</span>
+                    <span class="value" id="ratio">-</span>
+                </div>
+            </div>
+            <div id="status" class="status"></div>
+        </div>
+
+        <div class="shortcuts">
+            <kbd>E</kbd> Encode  <kbd>D</kbd> Decode  <kbd>Ctrl+Enter</kbd> Process  <kbd>Ctrl+C</kbd> Copy output
+        </div>
+    </div>
+
+    <script>
+        let mode = 'encode';
+        let inputType = 'text';
+        let currentFile = null;
+
+        function setMode(m) {
+            mode = m;
+            document.getElementById('encodeBtn').classList.toggle('active', m === 'encode');
+            document.getElementById('decodeBtn').classList.toggle('active', m === 'decode');
+            
+            if (inputType === 'text') {
+                document.getElementById('inputLabel').textContent = m === 'encode' ? 'Text to Encode' : 'Base64 to Decode';
+                document.getElementById('input').placeholder = m === 'encode' ? 'Enter text here...' : 'Enter Base64 string here...';
+            }
+            document.getElementById('outputLabel').textContent = m === 'encode' ? 'Base64 Output' : 'Decoded Output';
+            
+            processInput();
+        }
+
+        function setInputType(type) {
+            inputType = type;
+            document.getElementById('textTab').classList.toggle('active', type === 'text');
+            document.getElementById('fileTab').classList.toggle('active', type === 'file');
+            document.getElementById('textInput').style.display = type === 'text' ? 'block' : 'none';
+            document.getElementById('fileInput').style.display = type === 'file' ? 'block' : 'none';
+            
+            if (type === 'text') {
+                processInput();
+            }
+        }
+
+        function processInput() {
+            const input = document.getElementById('input').value;
+            const output = document.getElementById('output');
+            const status = document.getElementById('status');
+            
+            status.className = 'status';
+            status.style.display = 'none';
+            
+            if (!input.trim()) {
+                output.value = '';
+                updateStats(0, 0);
+                return;
+            }
+
+            try {
+                if (mode === 'encode') {
+                    const encoded = btoa(unescape(encodeURIComponent(input)));
+                    output.value = encoded;
+                    updateStats(input.length, encoded.length);
+                    status.textContent = '✓ Encoded successfully';
+                    status.className = 'status success';
+                } else {
+                    // Clean input (remove whitespace)
+                    const cleaned = input.replace(/\s/g, '');
+                    const decoded = decodeURIComponent(escape(atob(cleaned)));
+                    output.value = decoded;
+                    updateStats(input.length, decoded.length);
+                    status.textContent = '✓ Decoded successfully';
+                    status.className = 'status success';
+                }
+            } catch (e) {
+                output.value = '';
+                status.textContent = '✗ Invalid input: ' + e.message;
+                status.className = 'status error';
+            }
+        }
+
+        function updateStats(inputLen, outputLen) {
+            document.getElementById('inputSize').textContent = formatSize(inputLen);
+            document.getElementById('outputSize').textContent = formatSize(outputLen);
+            
+            if (inputLen > 0 && outputLen > 0) {
+                const ratio = (outputLen / inputLen).toFixed(2);
+                document.getElementById('ratio').textContent = ratio + 'x';
+            } else {
+                document.getElementById('ratio').textContent = '-';
+            }
+        }
+
+        function formatSize(bytes) {
+            if (bytes < 1024) return bytes + ' chars';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        function clearInput() {
+            document.getElementById('input').value = '';
+            document.getElementById('output').value = '';
+            document.getElementById('status').style.display = 'none';
+            updateStats(0, 0);
+        }
+
+        async function pasteInput() {
+            try {
+                const text = await navigator.clipboard.readText();
+                document.getElementById('input').value = text;
+                processInput();
+            } catch (e) {
+                alert('Could not access clipboard');
+            }
+        }
+
+        function copyOutput() {
+            const output = document.getElementById('output');
+            if (!output.value) return;
+            
+            navigator.clipboard.writeText(output.value).then(() => {
+                const status = document.getElementById('status');
+                status.textContent = '✓ Copied to clipboard!';
+                status.className = 'status success';
+            });
+        }
+
+        function downloadOutput() {
+            const output = document.getElementById('output').value;
+            if (!output) return;
+            
+            const blob = new Blob([output], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = mode === 'encode' ? 'encoded.txt' : 'decoded.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function handleFile(file) {
+            if (!file) return;
+            
+            currentFile = file;
+            document.getElementById('fileInfo').style.display = 'block';
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileSize').textContent = formatSize(file.size);
+            document.getElementById('fileType').textContent = file.type || 'unknown';
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                if (mode === 'encode') {
+                    const base64 = e.target.result.split(',')[1];
+                    document.getElementById('output').value = base64;
+                    updateStats(file.size, base64.length);
+                } else {
+                    try {
+                        const decoded = atob(e.target.result);
+                        document.getElementById('output').value = decoded;
+                        updateStats(e.target.result.length, decoded.length);
+                    } catch (err) {
+                        document.getElementById('status').textContent = '✗ Invalid Base64 file';
+                        document.getElementById('status').className = 'status error';
+                    }
+                }
+            };
+            
+            if (mode === 'encode') {
+                reader.readAsDataURL(file);
+            } else {
+                reader.readAsText(file);
+            }
+        }
+
+        // Drag and drop
+        const dropZone = document.getElementById('dropZone');
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        // Live processing
+        document.getElementById('input').addEventListener('input', processInput);
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'TEXTAREA') {
+                if (e.ctrlKey && e.key === 'Enter') {
+                    e.preventDefault();
+                    processInput();
+                }
+                return;
+            }
+            
+            if (e.key === 'e' || e.key === 'E') setMode('encode');
+            else if (e.key === 'd' || e.key === 'D') setMode('decode');
+        });
+    </script>
+</body>
+</html>
