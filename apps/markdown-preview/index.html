@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Preview - ClawdOS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border: #30363d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent: #58a6ff;
+            --accent-hover: #79b8ff;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        
+        .logo {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .toolbar {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .btn:hover {
+            background: var(--border);
+            border-color: var(--text-secondary);
+        }
+        
+        .btn-primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #000;
+        }
+        
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
+        }
+        
+        .main {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .editor-pane, .preview-pane {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .editor-pane {
+            border-right: 1px solid var(--border);
+        }
+        
+        .pane-header {
+            background: var(--bg-secondary);
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .pane-header span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        #editor {
+            flex: 1;
+            background: var(--bg-primary);
+            border: none;
+            color: var(--text-primary);
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            padding: 20px;
+            resize: none;
+            outline: none;
+            width: 100%;
+        }
+        
+        #preview {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: var(--bg-primary);
+        }
+        
+        /* Markdown Styles */
+        .markdown-body {
+            color: var(--text-primary);
+            line-height: 1.7;
+        }
+        
+        .markdown-body h1, .markdown-body h2, .markdown-body h3, 
+        .markdown-body h4, .markdown-body h5, .markdown-body h6 {
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+            color: var(--text-primary);
+        }
+        
+        .markdown-body h1 {
+            font-size: 2em;
+            padding-bottom: 0.3em;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .markdown-body h2 {
+            font-size: 1.5em;
+            padding-bottom: 0.3em;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .markdown-body h3 { font-size: 1.25em; }
+        .markdown-body h4 { font-size: 1em; }
+        
+        .markdown-body p {
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+        
+        .markdown-body a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        
+        .markdown-body a:hover {
+            text-decoration: underline;
+        }
+        
+        .markdown-body code {
+            background: var(--bg-tertiary);
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+            font-size: 85%;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+        }
+        
+        .markdown-body pre {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 16px;
+            overflow-x: auto;
+            margin: 16px 0;
+        }
+        
+        .markdown-body pre code {
+            background: transparent;
+            padding: 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .markdown-body blockquote {
+            border-left: 4px solid var(--accent);
+            padding-left: 16px;
+            margin: 16px 0;
+            color: var(--text-secondary);
+        }
+        
+        .markdown-body ul, .markdown-body ol {
+            padding-left: 2em;
+            margin-bottom: 16px;
+        }
+        
+        .markdown-body li {
+            margin-bottom: 4px;
+        }
+        
+        .markdown-body table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 16px 0;
+        }
+        
+        .markdown-body th, .markdown-body td {
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            text-align: left;
+        }
+        
+        .markdown-body th {
+            background: var(--bg-secondary);
+            font-weight: 600;
+        }
+        
+        .markdown-body tr:nth-child(even) {
+            background: var(--bg-secondary);
+        }
+        
+        .markdown-body hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 24px 0;
+        }
+        
+        .markdown-body img {
+            max-width: 100%;
+            border-radius: 6px;
+        }
+        
+        .markdown-body .task-list-item {
+            list-style-type: none;
+            margin-left: -20px;
+        }
+        
+        .markdown-body input[type="checkbox"] {
+            margin-right: 8px;
+        }
+        
+        .word-count {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .saved-indicator {
+            font-size: 12px;
+            color: #3fb950;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .saved-indicator.show {
+            opacity: 1;
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-overlay.show {
+            display: flex;
+        }
+        
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            width: 90%;
+            max-width: 500px;
+        }
+        
+        .modal h3 {
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        
+        .file-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 16px 0;
+        }
+        
+        .file-item {
+            padding: 10px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .file-item:hover {
+            border-color: var(--accent);
+        }
+        
+        .file-item .delete-btn {
+            color: #f85149;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        
+        .file-item .delete-btn:hover {
+            background: rgba(248, 81, 73, 0.2);
+        }
+        
+        @media (max-width: 768px) {
+            .main {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr;
+            }
+            
+            .editor-pane {
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+            
+            .toolbar {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                📝 Markdown Preview
+            </div>
+            <div class="toolbar">
+                <button class="btn" onclick="newDocument()">
+                    ✨ New
+                </button>
+                <button class="btn" onclick="openModal()">
+                    📂 Files
+                </button>
+                <button class="btn" onclick="downloadMd()">
+                    ⬇️ .md
+                </button>
+                <button class="btn btn-primary" onclick="downloadHtml()">
+                    ⬇️ HTML
+                </button>
+            </div>
+        </div>
+        
+        <div class="main">
+            <div class="editor-pane">
+                <div class="pane-header">
+                    <span>✏️ Editor</span>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="saved-indicator" id="savedIndicator">✓ Saved</span>
+                        <span class="word-count" id="wordCount">0 words</span>
+                    </div>
+                </div>
+                <textarea id="editor" placeholder="Start writing markdown here..."></textarea>
+            </div>
+            
+            <div class="preview-pane">
+                <div class="pane-header">
+                    <span>👁️ Preview</span>
+                </div>
+                <div id="preview" class="markdown-body"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Files Modal -->
+    <div class="modal-overlay" id="filesModal">
+        <div class="modal">
+            <h3>📂 Saved Documents</h3>
+            <div class="file-list" id="fileList"></div>
+            <div class="modal-actions">
+                <button class="btn" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const editor = document.getElementById('editor');
+        const preview = document.getElementById('preview');
+        const wordCount = document.getElementById('wordCount');
+        const savedIndicator = document.getElementById('savedIndicator');
+        const filesModal = document.getElementById('filesModal');
+        const fileList = document.getElementById('fileList');
+        
+        let saveTimeout;
+        let currentDocId = localStorage.getItem('currentDocId') || 'default';
+        
+        // Configure marked
+        marked.setOptions({
+            highlight: function(code, lang) {
+                if (lang && hljs.getLanguage(lang)) {
+                    return hljs.highlight(code, { language: lang }).value;
+                }
+                return hljs.highlightAuto(code).value;
+            },
+            breaks: true,
+            gfm: true
+        });
+        
+        // Default content
+        const defaultContent = `# Welcome to Markdown Preview! 🎉
+
+A beautiful, real-time markdown editor for ClawdOS.
+
+## Features
+
+- **Live Preview** - See your markdown rendered instantly
+- **Syntax Highlighting** - Code blocks are highlighted automatically
+- **Auto-Save** - Your work is saved to local storage
+- **Multiple Documents** - Save and manage multiple files
+- **Export** - Download as .md or rendered HTML
+
+## Code Example
+
+\`\`\`javascript
+function greet(name) {
+    console.log(\`Hello, \${name}!\`);
+}
+
+greet('World');
+\`\`\`
+
+## Table Example
+
+| Feature | Status |
+|---------|--------|
+| Live Preview | ✅ |
+| Auto-Save | ✅ |
+| Dark Theme | ✅ |
+| Export | ✅ |
+
+## Task List
+
+- [x] Create editor
+- [x] Add preview
+- [x] Style with dark theme
+- [ ] Add more features
+
+> "The best way to predict the future is to create it." - Abraham Lincoln
+
+---
+
+Start editing to see the magic! 🚀
+`;
+        
+        // Initialize
+        function init() {
+            const saved = localStorage.getItem(`md_doc_${currentDocId}`);
+            editor.value = saved || defaultContent;
+            updatePreview();
+            updateWordCount();
+        }
+        
+        // Update preview
+        function updatePreview() {
+            preview.innerHTML = marked.parse(editor.value);
+        }
+        
+        // Update word count
+        function updateWordCount() {
+            const text = editor.value.trim();
+            const words = text ? text.split(/\s+/).length : 0;
+            const chars = text.length;
+            wordCount.textContent = `${words} words, ${chars} chars`;
+        }
+        
+        // Auto-save
+        function autoSave() {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                localStorage.setItem(`md_doc_${currentDocId}`, editor.value);
+                savedIndicator.classList.add('show');
+                setTimeout(() => savedIndicator.classList.remove('show'), 2000);
+            }, 500);
+        }
+        
+        // Event listeners
+        editor.addEventListener('input', () => {
+            updatePreview();
+            updateWordCount();
+            autoSave();
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 's') {
+                    e.preventDefault();
+                    autoSave();
+                }
+            }
+        });
+        
+        // New document
+        function newDocument() {
+            const id = 'doc_' + Date.now();
+            currentDocId = id;
+            localStorage.setItem('currentDocId', id);
+            editor.value = '# New Document\n\nStart writing here...';
+            updatePreview();
+            updateWordCount();
+            autoSave();
+        }
+        
+        // Download as markdown
+        function downloadMd() {
+            const blob = new Blob([editor.value], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'document.md';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // Download as HTML
+        function downloadHtml() {
+            const html = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Markdown Export</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3 { margin-top: 24px; }
+        h1 { border-bottom: 1px solid #eee; padding-bottom: 8px; }
+        h2 { border-bottom: 1px solid #eee; padding-bottom: 4px; }
+        code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; }
+        pre { background: #f4f4f4; padding: 16px; border-radius: 6px; overflow-x: auto; }
+        pre code { background: none; padding: 0; }
+        blockquote { border-left: 4px solid #ddd; margin: 0; padding-left: 16px; color: #666; }
+        table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+        th { background: #f9f9f9; }
+    </style>
+</head>
+<body>
+${preview.innerHTML}
+</body>
+</html>`;
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'document.html';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // Modal functions
+        function openModal() {
+            updateFileList();
+            filesModal.classList.add('show');
+        }
+        
+        function closeModal() {
+            filesModal.classList.remove('show');
+        }
+        
+        function updateFileList() {
+            const docs = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('md_doc_')) {
+                    const id = key.replace('md_doc_', '');
+                    const content = localStorage.getItem(key);
+                    const firstLine = content.split('\n')[0].replace(/^#*\s*/, '').substring(0, 40);
+                    docs.push({ id, title: firstLine || 'Untitled', content });
+                }
+            }
+            
+            if (docs.length === 0) {
+                fileList.innerHTML = '<p style="color: var(--text-secondary);">No saved documents yet.</p>';
+                return;
+            }
+            
+            fileList.innerHTML = docs.map(doc => `
+                <div class="file-item" onclick="loadDocument('${doc.id}')">
+                    <span>${doc.title}${doc.id === currentDocId ? ' (current)' : ''}</span>
+                    <button class="delete-btn" onclick="event.stopPropagation(); deleteDocument('${doc.id}')">🗑️</button>
+                </div>
+            `).join('');
+        }
+        
+        function loadDocument(id) {
+            currentDocId = id;
+            localStorage.setItem('currentDocId', id);
+            editor.value = localStorage.getItem(`md_doc_${id}`) || '';
+            updatePreview();
+            updateWordCount();
+            closeModal();
+        }
+        
+        function deleteDocument(id) {
+            if (confirm('Delete this document?')) {
+                localStorage.removeItem(`md_doc_${id}`);
+                if (id === currentDocId) {
+                    newDocument();
+                }
+                updateFileList();
+            }
+        }
+        
+        // Close modal on outside click
+        filesModal.addEventListener('click', (e) => {
+            if (e.target === filesModal) closeModal();
+        });
+        
+        // Initialize
+        init();
+    </script>
+</body>
+</html>
