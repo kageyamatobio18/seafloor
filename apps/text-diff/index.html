@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Diff Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            color: #8892b0;
+            font-size: 1.1rem;
+        }
+        
+        .shortcuts {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .shortcut {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #8892b0;
+        }
+        
+        .shortcut kbd {
+            background: rgba(0, 212, 255, 0.2);
+            color: #00d4ff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-right: 5px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .input-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .input-section {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .input-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .input-box h3 {
+            margin-bottom: 10px;
+            color: #00d4ff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .input-box h3 .stats {
+            font-size: 0.8rem;
+            color: #8892b0;
+            font-weight: normal;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 300px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            color: #fff;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 14px;
+            resize: vertical;
+            line-height: 1.5;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+        }
+        
+        textarea::placeholder {
+            color: #5a6380;
+        }
+        
+        .diff-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .diff-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .diff-header h3 {
+            color: #00d4ff;
+        }
+        
+        .diff-stats {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .stat {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .stat-added {
+            background: rgba(46, 160, 67, 0.2);
+            color: #3fb950;
+        }
+        
+        .stat-removed {
+            background: rgba(248, 81, 73, 0.2);
+            color: #f85149;
+        }
+        
+        .stat-unchanged {
+            background: rgba(255, 255, 255, 0.1);
+            color: #8892b0;
+        }
+        
+        .diff-options {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .diff-options label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            color: #8892b0;
+        }
+        
+        .diff-options input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #00d4ff;
+        }
+        
+        .diff-output {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            max-height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .diff-line {
+            display: flex;
+            padding: 2px 8px;
+            margin: 0 -15px;
+            border-radius: 0;
+        }
+        
+        .diff-line:first-child {
+            margin-top: -15px;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .diff-line:last-child {
+            margin-bottom: -15px;
+            border-radius: 0 0 8px 8px;
+        }
+        
+        .line-number {
+            color: #5a6380;
+            width: 50px;
+            text-align: right;
+            margin-right: 15px;
+            user-select: none;
+            flex-shrink: 0;
+        }
+        
+        .line-content {
+            flex: 1;
+        }
+        
+        .line-added {
+            background: rgba(46, 160, 67, 0.15);
+            border-left: 3px solid #3fb950;
+        }
+        
+        .line-added .line-number {
+            color: #3fb950;
+        }
+        
+        .line-removed {
+            background: rgba(248, 81, 73, 0.15);
+            border-left: 3px solid #f85149;
+        }
+        
+        .line-removed .line-number {
+            color: #f85149;
+        }
+        
+        .line-unchanged {
+            border-left: 3px solid transparent;
+        }
+        
+        .line-header {
+            background: rgba(88, 166, 255, 0.1);
+            color: #58a6ff;
+            border-left: 3px solid #58a6ff;
+            font-weight: 600;
+        }
+        
+        .char-added {
+            background: rgba(46, 160, 67, 0.4);
+            border-radius: 2px;
+        }
+        
+        .char-removed {
+            background: rgba(248, 81, 73, 0.4);
+            border-radius: 2px;
+        }
+        
+        .no-diff {
+            text-align: center;
+            color: #8892b0;
+            padding: 40px;
+        }
+        
+        .no-diff .icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 212, 255, 0.9);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📝 Text Diff Tool</h1>
+            <p class="subtitle">Compare two texts and see what changed</p>
+            <div class="shortcuts">
+                <span class="shortcut"><kbd>Ctrl+Enter</kbd> Compare</span>
+                <span class="shortcut"><kbd>Ctrl+Shift+C</kbd> Copy Diff</span>
+                <span class="shortcut"><kbd>Ctrl+Shift+X</kbd> Swap</span>
+            </div>
+        </header>
+        
+        <div class="controls">
+            <button class="btn-primary" onclick="compare()">Compare Texts</button>
+            <button class="btn-secondary" onclick="swapTexts()">↔️ Swap</button>
+            <button class="btn-secondary" onclick="clearAll()">🗑️ Clear</button>
+            <button class="btn-secondary" onclick="copyDiff()">📋 Copy Diff</button>
+            <button class="btn-secondary" onclick="loadSample()">📄 Sample</button>
+        </div>
+        
+        <div class="input-section">
+            <div class="input-box">
+                <h3>Original Text <span class="stats" id="stats1"></span></h3>
+                <textarea id="text1" placeholder="Paste your original text here..."></textarea>
+            </div>
+            <div class="input-box">
+                <h3>Modified Text <span class="stats" id="stats2"></span></h3>
+                <textarea id="text2" placeholder="Paste your modified text here..."></textarea>
+            </div>
+        </div>
+        
+        <div class="diff-section">
+            <div class="diff-header">
+                <h3>Diff Output</h3>
+                <div class="diff-options">
+                    <label>
+                        <input type="checkbox" id="showLineNumbers" checked onchange="compare()">
+                        Line Numbers
+                    </label>
+                    <label>
+                        <input type="checkbox" id="ignoreWhitespace" onchange="compare()">
+                        Ignore Whitespace
+                    </label>
+                    <label>
+                        <input type="checkbox" id="showUnchanged" checked onchange="compare()">
+                        Show Unchanged
+                    </label>
+                </div>
+                <div class="diff-stats" id="diffStats"></div>
+            </div>
+            <div class="diff-output" id="diffOutput">
+                <div class="no-diff">
+                    <div class="icon">📝</div>
+                    <p>Enter text in both boxes and click "Compare Texts"</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast"></div>
+    
+    <script>
+        const text1 = document.getElementById('text1');
+        const text2 = document.getElementById('text2');
+        const diffOutput = document.getElementById('diffOutput');
+        const diffStats = document.getElementById('diffStats');
+        const stats1 = document.getElementById('stats1');
+        const stats2 = document.getElementById('stats2');
+        
+        // Update stats on input
+        text1.addEventListener('input', () => updateStats(text1, stats1));
+        text2.addEventListener('input', () => updateStats(text2, stats2));
+        
+        function updateStats(textarea, statsEl) {
+            const text = textarea.value;
+            const lines = text ? text.split('\n').length : 0;
+            const chars = text.length;
+            statsEl.textContent = `(${lines} lines, ${chars} chars)`;
+        }
+        
+        function compare() {
+            const original = text1.value;
+            const modified = text2.value;
+            const showLineNumbers = document.getElementById('showLineNumbers').checked;
+            const ignoreWhitespace = document.getElementById('ignoreWhitespace').checked;
+            const showUnchanged = document.getElementById('showUnchanged').checked;
+            
+            if (!original && !modified) {
+                diffOutput.innerHTML = `
+                    <div class="no-diff">
+                        <div class="icon">📝</div>
+                        <p>Enter text in both boxes and click "Compare Texts"</p>
+                    </div>
+                `;
+                diffStats.innerHTML = '';
+                return;
+            }
+            
+            // Split into lines
+            let lines1 = original.split('\n');
+            let lines2 = modified.split('\n');
+            
+            if (ignoreWhitespace) {
+                lines1 = lines1.map(l => l.trim());
+                lines2 = lines2.map(l => l.trim());
+            }
+            
+            // Compute LCS-based diff
+            const diff = computeDiff(lines1, lines2);
+            
+            // Render diff
+            let html = '';
+            let addedCount = 0;
+            let removedCount = 0;
+            let unchangedCount = 0;
+            let lineNum1 = 0;
+            let lineNum2 = 0;
+            
+            for (const item of diff) {
+                if (item.type === 'unchanged') {
+                    unchangedCount++;
+                    lineNum1++;
+                    lineNum2++;
+                    if (showUnchanged) {
+                        const ln = showLineNumbers ? 
+                            `<span class="line-number">${lineNum1}</span>` : '';
+                        html += `<div class="diff-line line-unchanged">${ln}<span class="line-content">  ${escapeHtml(item.value)}</span></div>`;
+                    }
+                } else if (item.type === 'removed') {
+                    removedCount++;
+                    lineNum1++;
+                    const ln = showLineNumbers ? 
+                        `<span class="line-number">${lineNum1}</span>` : '';
+                    html += `<div class="diff-line line-removed">${ln}<span class="line-content">- ${escapeHtml(item.value)}</span></div>`;
+                } else if (item.type === 'added') {
+                    addedCount++;
+                    lineNum2++;
+                    const ln = showLineNumbers ? 
+                        `<span class="line-number">${lineNum2}</span>` : '';
+                    html += `<div class="diff-line line-added">${ln}<span class="line-content">+ ${escapeHtml(item.value)}</span></div>`;
+                }
+            }
+            
+            if (!html) {
+                if (original === modified) {
+                    diffOutput.innerHTML = `
+                        <div class="no-diff">
+                            <div class="icon">✅</div>
+                            <p>The texts are identical!</p>
+                        </div>
+                    `;
+                } else {
+                    diffOutput.innerHTML = `
+                        <div class="no-diff">
+                            <div class="icon">👀</div>
+                            <p>No visible changes (try unchecking "Show Unchanged")</p>
+                        </div>
+                    `;
+                }
+            } else {
+                diffOutput.innerHTML = html;
+            }
+            
+            // Update stats
+            diffStats.innerHTML = `
+                <span class="stat stat-added">+${addedCount} added</span>
+                <span class="stat stat-removed">-${removedCount} removed</span>
+                <span class="stat stat-unchanged">${unchangedCount} unchanged</span>
+            `;
+        }
+        
+        function computeDiff(lines1, lines2) {
+            // Myers diff algorithm (simplified LCS-based)
+            const m = lines1.length;
+            const n = lines2.length;
+            
+            // Compute LCS table
+            const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+            
+            for (let i = 1; i <= m; i++) {
+                for (let j = 1; j <= n; j++) {
+                    if (lines1[i - 1] === lines2[j - 1]) {
+                        dp[i][j] = dp[i - 1][j - 1] + 1;
+                    } else {
+                        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+                    }
+                }
+            }
+            
+            // Backtrack to get diff
+            const result = [];
+            let i = m, j = n;
+            
+            while (i > 0 || j > 0) {
+                if (i > 0 && j > 0 && lines1[i - 1] === lines2[j - 1]) {
+                    result.unshift({ type: 'unchanged', value: lines1[i - 1] });
+                    i--;
+                    j--;
+                } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+                    result.unshift({ type: 'added', value: lines2[j - 1] });
+                    j--;
+                } else if (i > 0) {
+                    result.unshift({ type: 'removed', value: lines1[i - 1] });
+                    i--;
+                }
+            }
+            
+            return result;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function swapTexts() {
+            const temp = text1.value;
+            text1.value = text2.value;
+            text2.value = temp;
+            updateStats(text1, stats1);
+            updateStats(text2, stats2);
+            compare();
+            showToast('Texts swapped!');
+        }
+        
+        function clearAll() {
+            text1.value = '';
+            text2.value = '';
+            updateStats(text1, stats1);
+            updateStats(text2, stats2);
+            diffOutput.innerHTML = `
+                <div class="no-diff">
+                    <div class="icon">📝</div>
+                    <p>Enter text in both boxes and click "Compare Texts"</p>
+                </div>
+            `;
+            diffStats.innerHTML = '';
+            showToast('Cleared!');
+        }
+        
+        function copyDiff() {
+            const lines = diffOutput.querySelectorAll('.diff-line');
+            if (!lines.length) {
+                showToast('No diff to copy!');
+                return;
+            }
+            
+            let text = '';
+            lines.forEach(line => {
+                const content = line.querySelector('.line-content');
+                if (content) {
+                    text += content.textContent + '\n';
+                }
+            });
+            
+            navigator.clipboard.writeText(text.trim())
+                .then(() => showToast('Diff copied!'))
+                .catch(() => showToast('Failed to copy'));
+        }
+        
+        function loadSample() {
+            text1.value = `function greet(name) {
+    console.log("Hello, " + name);
+    return true;
+}
+
+// Old comment
+const x = 10;
+const y = 20;`;
+            
+            text2.value = `function greet(name, greeting = "Hello") {
+    console.log(greeting + ", " + name + "!");
+    return true;
+}
+
+// Updated comment
+const x = 10;
+const y = 25;
+const z = 30;`;
+            
+            updateStats(text1, stats1);
+            updateStats(text2, stats2);
+            compare();
+            showToast('Sample loaded!');
+        }
+        
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                compare();
+            } else if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+                e.preventDefault();
+                copyDiff();
+            } else if (e.ctrlKey && e.shiftKey && e.key === 'X') {
+                e.preventDefault();
+                swapTexts();
+            }
+        });
+        
+        // Load from localStorage
+        const saved1 = localStorage.getItem('diff_text1');
+        const saved2 = localStorage.getItem('diff_text2');
+        if (saved1) text1.value = saved1;
+        if (saved2) text2.value = saved2;
+        updateStats(text1, stats1);
+        updateStats(text2, stats2);
+        
+        // Auto-save
+        setInterval(() => {
+            localStorage.setItem('diff_text1', text1.value);
+            localStorage.setItem('diff_text2', text2.value);
+        }, 5000);
+    </script>
+</body>
+</html>
