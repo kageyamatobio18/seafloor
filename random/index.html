@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Random Generator</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container { max-width: 500px; margin: 0 auto; }
+    
+    .title { font-size: 24px; text-align: center; margin-bottom: 30px; }
+    
+    .section {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    
+    .section-title {
+      font-size: 14px;
+      color: #8b949e;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .result {
+      font-size: 48px;
+      font-weight: 700;
+      text-align: center;
+      padding: 20px;
+      background: #0d1117;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      color: #58a6ff;
+      font-family: 'SF Mono', monospace;
+      word-break: break-all;
+    }
+    
+    .result.small { font-size: 18px; }
+    
+    .controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .input {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #c9d1d9;
+      padding: 8px 12px;
+      font-size: 14px;
+      outline: none;
+      width: 80px;
+    }
+    
+    .input:focus { border-color: #58a6ff; }
+    
+    .btn {
+      background: #238636;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      flex: 1;
+    }
+    
+    .btn:hover { background: #2ea043; }
+    .btn:active { transform: scale(0.98); }
+    
+    .label { font-size: 12px; color: #8b949e; }
+    
+    .coin {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #ffd700, #ffb700);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      margin: 0 auto 12px;
+      transition: transform 0.5s;
+      box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+    }
+    
+    .coin.flip { animation: coinFlip 0.5s ease-out; }
+    
+    @keyframes coinFlip {
+      0% { transform: rotateY(0deg); }
+      50% { transform: rotateY(1800deg) scale(1.2); }
+      100% { transform: rotateY(3600deg); }
+    }
+    
+    .list-input {
+      width: 100%;
+      min-height: 80px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #c9d1d9;
+      padding: 10px;
+      font-size: 14px;
+      resize: vertical;
+      outline: none;
+      margin-bottom: 12px;
+    }
+    
+    .list-input:focus { border-color: #58a6ff; }
+    
+    .shuffle-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    
+    .shuffle-item {
+      background: #21262d;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    
+    .shuffle-item.highlight {
+      background: #238636;
+      color: white;
+    }
+    
+    .password-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+    }
+    
+    .option input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+    }
+    
+    .copy-btn {
+      background: #21262d;
+      border: 1px solid #30363d;
+      color: #8b949e;
+      padding: 4px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    
+    .copy-btn:hover { background: #30363d; color: #c9d1d9; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="title">🎲 Random Generator</h1>
+    
+    <!-- Number -->
+    <div class="section">
+      <div class="section-title">🔢 Random Number</div>
+      <div class="result" id="number-result">42</div>
+      <div class="controls">
+        <span class="label">Min</span>
+        <input type="number" class="input" id="num-min" value="1" />
+        <span class="label">Max</span>
+        <input type="number" class="input" id="num-max" value="100" />
+        <button class="btn" onclick="generateNumber()">Generate</button>
+      </div>
+    </div>
+    
+    <!-- Coin -->
+    <div class="section">
+      <div class="section-title">🪙 Coin Flip</div>
+      <div class="coin" id="coin">🪙</div>
+      <div class="result" id="coin-result" style="font-size: 24px;">Flip to start</div>
+      <button class="btn" onclick="flipCoin()" style="width: 100%;">Flip Coin</button>
+    </div>
+    
+    <!-- Password -->
+    <div class="section">
+      <div class="section-title">🔐 Password Generator</div>
+      <div class="result small" id="password-result">Click generate</div>
+      <div class="password-options">
+        <label class="option"><input type="checkbox" id="pw-upper" checked /> A-Z</label>
+        <label class="option"><input type="checkbox" id="pw-lower" checked /> a-z</label>
+        <label class="option"><input type="checkbox" id="pw-numbers" checked /> 0-9</label>
+        <label class="option"><input type="checkbox" id="pw-symbols" checked /> !@#</label>
+      </div>
+      <div class="controls">
+        <span class="label">Length</span>
+        <input type="number" class="input" id="pw-length" value="16" min="4" max="64" />
+        <button class="btn" onclick="generatePassword()">Generate</button>
+        <button class="copy-btn" onclick="copyPassword()">Copy</button>
+      </div>
+    </div>
+    
+    <!-- List Picker -->
+    <div class="section">
+      <div class="section-title">📋 Pick from List</div>
+      <textarea class="list-input" id="list-input" placeholder="Enter items, one per line...">Pizza
+Burger
+Sushi
+Tacos
+Pasta</textarea>
+      <div class="result" id="list-result" style="font-size: 28px;">-</div>
+      <div class="controls">
+        <button class="btn" onclick="pickFromList()">Pick Random</button>
+        <button class="btn" onclick="shuffleList()" style="background: #6e40c9;">Shuffle All</button>
+      </div>
+      <div class="shuffle-list" id="shuffle-result"></div>
+    </div>
+  </div>
+  
+  <script src="https://clawdos.space/sdk/clawd-miniapp-sdk.js"></script>
+  <script>
+    try { if (window.clawd) clawd.ready(); } catch(e) {}
+    
+    function generateNumber() {
+      const min = parseInt(document.getElementById('num-min').value) || 1;
+      const max = parseInt(document.getElementById('num-max').value) || 100;
+      const result = Math.floor(Math.random() * (max - min + 1)) + min;
+      document.getElementById('number-result').textContent = result;
+    }
+    
+    function flipCoin() {
+      const coin = document.getElementById('coin');
+      const result = document.getElementById('coin-result');
+      
+      coin.classList.add('flip');
+      result.textContent = '...';
+      
+      setTimeout(() => {
+        const isHeads = Math.random() < 0.5;
+        coin.textContent = isHeads ? '👑' : '🦅';
+        result.textContent = isHeads ? 'HEADS!' : 'TAILS!';
+        coin.classList.remove('flip');
+      }, 500);
+    }
+    
+    function generatePassword() {
+      const length = parseInt(document.getElementById('pw-length').value) || 16;
+      const useUpper = document.getElementById('pw-upper').checked;
+      const useLower = document.getElementById('pw-lower').checked;
+      const useNumbers = document.getElementById('pw-numbers').checked;
+      const useSymbols = document.getElementById('pw-symbols').checked;
+      
+      let chars = '';
+      if (useUpper) chars += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      if (useLower) chars += 'abcdefghijklmnopqrstuvwxyz';
+      if (useNumbers) chars += '0123456789';
+      if (useSymbols) chars += '!@#$%^&*()_+-=[]{}|;:,.<>?';
+      
+      if (!chars) chars = 'abcdefghijklmnopqrstuvwxyz';
+      
+      let password = '';
+      for (let i = 0; i < length; i++) {
+        password += chars[Math.floor(Math.random() * chars.length)];
+      }
+      
+      document.getElementById('password-result').textContent = password;
+    }
+    
+    function copyPassword() {
+      const pw = document.getElementById('password-result').textContent;
+      navigator.clipboard.writeText(pw);
+    }
+    
+    function pickFromList() {
+      const text = document.getElementById('list-input').value;
+      const items = text.split('\n').map(s => s.trim()).filter(s => s);
+      
+      if (items.length === 0) return;
+      
+      const picked = items[Math.floor(Math.random() * items.length)];
+      document.getElementById('list-result').textContent = picked;
+      document.getElementById('shuffle-result').innerHTML = '';
+    }
+    
+    function shuffleList() {
+      const text = document.getElementById('list-input').value;
+      const items = text.split('\n').map(s => s.trim()).filter(s => s);
+      
+      if (items.length === 0) return;
+      
+      // Fisher-Yates shuffle
+      for (let i = items.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [items[i], items[j]] = [items[j], items[i]];
+      }
+      
+      document.getElementById('list-result').textContent = items[0];
+      document.getElementById('shuffle-result').innerHTML = items.map((item, i) => 
+        `<span class="shuffle-item ${i === 0 ? 'highlight' : ''}">${i + 1}. ${item}</span>`
+      ).join('');
+    }
+    
+    // Init
+    generateNumber();
+    generatePassword();
+  </script>
+</body>
+</html>

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Unit Converter</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .container {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 16px;
+      padding: 24px;
+      width: 100%;
+      max-width: 420px;
+    }
+    
+    .title {
+      font-size: 24px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .category-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    
+    .category-tab {
+      padding: 8px 14px;
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 20px;
+      color: #8b949e;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .category-tab:hover { background: #30363d; }
+    
+    .category-tab.active {
+      background: #58a6ff;
+      color: #0d1117;
+      border-color: #58a6ff;
+    }
+    
+    .converter-box {
+      background: #0d1117;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    
+    .unit-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .unit-row:last-child { margin-bottom: 0; }
+    
+    .unit-input-group {
+      flex: 1;
+    }
+    
+    .unit-label {
+      font-size: 12px;
+      color: #8b949e;
+      margin-bottom: 6px;
+    }
+    
+    .unit-input {
+      width: 100%;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 12px;
+      color: #c9d1d9;
+      font-size: 18px;
+      font-weight: 600;
+      outline: none;
+      font-variant-numeric: tabular-nums;
+    }
+    
+    .unit-input:focus { border-color: #58a6ff; }
+    
+    .unit-select {
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 10px;
+      color: #c9d1d9;
+      font-size: 14px;
+      cursor: pointer;
+      min-width: 100px;
+    }
+    
+    .swap-row {
+      display: flex;
+      justify-content: center;
+      margin: -8px 0 8px;
+    }
+    
+    .swap-btn {
+      background: #21262d;
+      border: 2px solid #30363d;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      color: #8b949e;
+      font-size: 18px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .swap-btn:hover {
+      background: #30363d;
+      transform: rotate(180deg);
+    }
+    
+    .formula {
+      text-align: center;
+      padding: 12px;
+      background: #0d1117;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #8b949e;
+    }
+    
+    .formula-value { color: #58a6ff; font-weight: 600; }
+    
+    .quick-values {
+      margin-top: 16px;
+    }
+    
+    .quick-title {
+      font-size: 12px;
+      color: #8b949e;
+      margin-bottom: 8px;
+    }
+    
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    
+    .quick-btn {
+      padding: 8px;
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #c9d1d9;
+      font-size: 12px;
+      cursor: pointer;
+      text-align: center;
+    }
+    
+    .quick-btn:hover { background: #30363d; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="title">📐 Unit Converter</div>
+    
+    <div class="category-tabs" id="categories"></div>
+    
+    <div class="converter-box">
+      <div class="unit-row">
+        <div class="unit-input-group">
+          <div class="unit-label">From</div>
+          <input type="number" class="unit-input" id="from-value" value="1" />
+        </div>
+        <div class="unit-input-group">
+          <select class="unit-select" id="from-unit"></select>
+        </div>
+      </div>
+      
+      <div class="swap-row">
+        <button class="swap-btn" id="swap">⇅</button>
+      </div>
+      
+      <div class="unit-row">
+        <div class="unit-input-group">
+          <div class="unit-label">To</div>
+          <input type="number" class="unit-input" id="to-value" readonly />
+        </div>
+        <div class="unit-input-group">
+          <select class="unit-select" id="to-unit"></select>
+        </div>
+      </div>
+    </div>
+    
+    <div class="formula" id="formula">-</div>
+    
+    <div class="quick-values">
+      <div class="quick-title">Quick Values</div>
+      <div class="quick-grid" id="quick-grid"></div>
+    </div>
+  </div>
+  
+  <script src="https://clawdos.space/sdk/clawd-miniapp-sdk.js"></script>
+  <script>
+    if (window.clawd) {
+      clawd.ready();
+      clawd.setTitle('Units');
+    }
+    
+    const categories = {
+      length: {
+        name: '📏 Length',
+        units: {
+          m: { name: 'Meters', factor: 1 },
+          km: { name: 'Kilometers', factor: 1000 },
+          cm: { name: 'Centimeters', factor: 0.01 },
+          mm: { name: 'Millimeters', factor: 0.001 },
+          mi: { name: 'Miles', factor: 1609.344 },
+          yd: { name: 'Yards', factor: 0.9144 },
+          ft: { name: 'Feet', factor: 0.3048 },
+          in: { name: 'Inches', factor: 0.0254 }
+        },
+        quick: [1, 10, 100, 1000]
+      },
+      weight: {
+        name: '⚖️ Weight',
+        units: {
+          kg: { name: 'Kilograms', factor: 1 },
+          g: { name: 'Grams', factor: 0.001 },
+          mg: { name: 'Milligrams', factor: 0.000001 },
+          lb: { name: 'Pounds', factor: 0.453592 },
+          oz: { name: 'Ounces', factor: 0.0283495 },
+          t: { name: 'Metric Tons', factor: 1000 }
+        },
+        quick: [1, 5, 10, 100]
+      },
+      temp: {
+        name: '🌡️ Temperature',
+        units: {
+          c: { name: 'Celsius', factor: 1 },
+          f: { name: 'Fahrenheit', factor: 1 },
+          k: { name: 'Kelvin', factor: 1 }
+        },
+        quick: [0, 32, 100, 212]
+      },
+      volume: {
+        name: '🧪 Volume',
+        units: {
+          l: { name: 'Liters', factor: 1 },
+          ml: { name: 'Milliliters', factor: 0.001 },
+          gal: { name: 'Gallons (US)', factor: 3.78541 },
+          qt: { name: 'Quarts', factor: 0.946353 },
+          pt: { name: 'Pints', factor: 0.473176 },
+          cup: { name: 'Cups', factor: 0.24 },
+          floz: { name: 'Fluid Ounces', factor: 0.0295735 }
+        },
+        quick: [1, 5, 10, 100]
+      },
+      area: {
+        name: '📐 Area',
+        units: {
+          m2: { name: 'Square Meters', factor: 1 },
+          km2: { name: 'Square Kilometers', factor: 1000000 },
+          ha: { name: 'Hectares', factor: 10000 },
+          acre: { name: 'Acres', factor: 4046.86 },
+          ft2: { name: 'Square Feet', factor: 0.092903 },
+          in2: { name: 'Square Inches', factor: 0.00064516 }
+        },
+        quick: [1, 10, 100, 1000]
+      },
+      speed: {
+        name: '🚀 Speed',
+        units: {
+          mps: { name: 'Meters/sec', factor: 1 },
+          kph: { name: 'km/hour', factor: 0.277778 },
+          mph: { name: 'Miles/hour', factor: 0.44704 },
+          knot: { name: 'Knots', factor: 0.514444 },
+          fps: { name: 'Feet/sec', factor: 0.3048 }
+        },
+        quick: [1, 10, 60, 100]
+      },
+      data: {
+        name: '💾 Data',
+        units: {
+          b: { name: 'Bytes', factor: 1 },
+          kb: { name: 'Kilobytes', factor: 1024 },
+          mb: { name: 'Megabytes', factor: 1048576 },
+          gb: { name: 'Gigabytes', factor: 1073741824 },
+          tb: { name: 'Terabytes', factor: 1099511627776 }
+        },
+        quick: [1, 100, 1024, 5000]
+      }
+    };
+    
+    let currentCategory = 'length';
+    let fromUnit = 'm';
+    let toUnit = 'km';
+    
+    const categoriesEl = document.getElementById('categories');
+    const fromValueEl = document.getElementById('from-value');
+    const toValueEl = document.getElementById('to-value');
+    const fromUnitEl = document.getElementById('from-unit');
+    const toUnitEl = document.getElementById('to-unit');
+    const formulaEl = document.getElementById('formula');
+    const quickGridEl = document.getElementById('quick-grid');
+    
+    function renderCategories() {
+      categoriesEl.innerHTML = Object.entries(categories).map(([key, cat]) => 
+        `<button class="category-tab ${key === currentCategory ? 'active' : ''}" data-cat="${key}">${cat.name}</button>`
+      ).join('');
+      
+      categoriesEl.querySelectorAll('.category-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentCategory = btn.dataset.cat;
+          const units = Object.keys(categories[currentCategory].units);
+          fromUnit = units[0];
+          toUnit = units[1] || units[0];
+          renderCategories();
+          renderUnits();
+          convert();
+        });
+      });
+    }
+    
+    function renderUnits() {
+      const cat = categories[currentCategory];
+      
+      fromUnitEl.innerHTML = Object.entries(cat.units).map(([key, u]) => 
+        `<option value="${key}" ${key === fromUnit ? 'selected' : ''}>${u.name}</option>`
+      ).join('');
+      
+      toUnitEl.innerHTML = Object.entries(cat.units).map(([key, u]) => 
+        `<option value="${key}" ${key === toUnit ? 'selected' : ''}>${u.name}</option>`
+      ).join('');
+      
+      quickGridEl.innerHTML = cat.quick.map(v => 
+        `<button class="quick-btn" data-val="${v}">${v}</button>`
+      ).join('');
+      
+      quickGridEl.querySelectorAll('.quick-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          fromValueEl.value = btn.dataset.val;
+          convert();
+        });
+      });
+    }
+    
+    function convert() {
+      const value = parseFloat(fromValueEl.value) || 0;
+      const cat = categories[currentCategory];
+      let result;
+      
+      if (currentCategory === 'temp') {
+        // Special handling for temperature
+        if (fromUnit === 'c' && toUnit === 'f') {
+          result = (value * 9/5) + 32;
+        } else if (fromUnit === 'f' && toUnit === 'c') {
+          result = (value - 32) * 5/9;
+        } else if (fromUnit === 'c' && toUnit === 'k') {
+          result = value + 273.15;
+        } else if (fromUnit === 'k' && toUnit === 'c') {
+          result = value - 273.15;
+        } else if (fromUnit === 'f' && toUnit === 'k') {
+          result = (value - 32) * 5/9 + 273.15;
+        } else if (fromUnit === 'k' && toUnit === 'f') {
+          result = (value - 273.15) * 9/5 + 32;
+        } else {
+          result = value;
+        }
+      } else {
+        const fromFactor = cat.units[fromUnit].factor;
+        const toFactor = cat.units[toUnit].factor;
+        result = (value * fromFactor) / toFactor;
+      }
+      
+      toValueEl.value = result.toPrecision(6).replace(/\.?0+$/, '');
+      
+      // Update formula
+      const fromName = cat.units[fromUnit].name;
+      const toName = cat.units[toUnit].name;
+      formulaEl.innerHTML = `<span class="formula-value">${value}</span> ${fromName} = <span class="formula-value">${toValueEl.value}</span> ${toName}`;
+    }
+    
+    // Events
+    fromValueEl.addEventListener('input', convert);
+    
+    fromUnitEl.addEventListener('change', () => {
+      fromUnit = fromUnitEl.value;
+      convert();
+    });
+    
+    toUnitEl.addEventListener('change', () => {
+      toUnit = toUnitEl.value;
+      convert();
+    });
+    
+    document.getElementById('swap').addEventListener('click', () => {
+      [fromUnit, toUnit] = [toUnit, fromUnit];
+      fromUnitEl.value = fromUnit;
+      toUnitEl.value = toUnit;
+      fromValueEl.value = toValueEl.value;
+      convert();
+    });
+    
+    // Init
+    renderCategories();
+    renderUnits();
+    convert();
+  </script>
+</body>
+</html>

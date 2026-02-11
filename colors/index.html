@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Color Picker</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .container {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 16px;
+      padding: 24px;
+      width: 100%;
+      max-width: 420px;
+    }
+    
+    .title {
+      font-size: 24px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .color-preview {
+      width: 100%;
+      height: 120px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    
+    .color-preview-text {
+      font-size: 14px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+    }
+    
+    .color-picker-native {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      padding: 0;
+    }
+    
+    .sliders {
+      background: #0d1117;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .slider-group {
+      margin-bottom: 16px;
+    }
+    
+    .slider-group:last-child { margin-bottom: 0; }
+    
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    
+    .slider-label {
+      font-size: 13px;
+      color: #8b949e;
+    }
+    
+    .slider-value {
+      font-size: 13px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+    
+    .slider-value.red { color: #f85149; }
+    .slider-value.green { color: #3fb950; }
+    .slider-value.blue { color: #58a6ff; }
+    
+    .slider {
+      width: 100%;
+      height: 12px;
+      -webkit-appearance: none;
+      border-radius: 6px;
+      outline: none;
+    }
+    
+    .slider.red { background: linear-gradient(to right, #000, #f85149); }
+    .slider.green { background: linear-gradient(to right, #000, #3fb950); }
+    .slider.blue { background: linear-gradient(to right, #000, #58a6ff); }
+    
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    
+    .color-codes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .color-code {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .color-code:hover {
+      border-color: #58a6ff;
+    }
+    
+    .color-code-label {
+      font-size: 11px;
+      color: #8b949e;
+      margin-bottom: 4px;
+    }
+    
+    .color-code-value {
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'SF Mono', monospace;
+    }
+    
+    .palette-section {
+      margin-top: 20px;
+    }
+    
+    .palette-title {
+      font-size: 12px;
+      color: #8b949e;
+      margin-bottom: 10px;
+    }
+    
+    .saved-palette {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .saved-color {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    
+    .saved-color:hover {
+      transform: scale(1.1);
+    }
+    
+    .saved-color.add-btn {
+      background: #21262d;
+      border: 2px dashed #30363d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: #8b949e;
+    }
+    
+    .saved-color.add-btn:hover {
+      border-color: #58a6ff;
+      color: #58a6ff;
+    }
+    
+    .harmony-section {
+      margin-top: 20px;
+    }
+    
+    .harmony-title {
+      font-size: 12px;
+      color: #8b949e;
+      margin-bottom: 10px;
+    }
+    
+    .harmony-row {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .harmony-color {
+      flex: 1;
+      height: 40px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    
+    .harmony-color:hover {
+      transform: scale(1.05);
+    }
+    
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #21262d;
+      border: 1px solid #30363d;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="title">🎨 Color Picker</div>
+    
+    <div class="color-preview" id="preview">
+      <input type="color" class="color-picker-native" id="native-picker" value="#58a6ff" />
+      <span class="color-preview-text" id="contrast-text">Sample Text</span>
+    </div>
+    
+    <div class="sliders">
+      <div class="slider-group">
+        <div class="slider-header">
+          <span class="slider-label">Red</span>
+          <span class="slider-value red" id="r-value">88</span>
+        </div>
+        <input type="range" class="slider red" id="r-slider" min="0" max="255" value="88" />
+      </div>
+      <div class="slider-group">
+        <div class="slider-header">
+          <span class="slider-label">Green</span>
+          <span class="slider-value green" id="g-value">166</span>
+        </div>
+        <input type="range" class="slider green" id="g-slider" min="0" max="255" value="166" />
+      </div>
+      <div class="slider-group">
+        <div class="slider-header">
+          <span class="slider-label">Blue</span>
+          <span class="slider-value blue" id="b-value">255</span>
+        </div>
+        <input type="range" class="slider blue" id="b-slider" min="0" max="255" value="255" />
+      </div>
+    </div>
+    
+    <div class="color-codes" id="codes"></div>
+    
+    <div class="harmony-section">
+      <div class="harmony-title">Color Harmony (Complementary)</div>
+      <div class="harmony-row" id="harmony"></div>
+    </div>
+    
+    <div class="palette-section">
+      <div class="palette-title">Saved Colors</div>
+      <div class="saved-palette" id="palette"></div>
+    </div>
+  </div>
+  
+  <div class="toast" id="toast">Copied!</div>
+  
+  <script src="https://clawdos.space/sdk/clawd-miniapp-sdk.js"></script>
+  <script>
+    if (window.clawd) {
+      clawd.ready();
+      clawd.setTitle('Colors');
+    }
+    
+    let r = 88, g = 166, b = 255;
+    let savedColors = JSON.parse(localStorage.getItem('colors-palette') || '[]');
+    
+    const preview = document.getElementById('preview');
+    const contrastText = document.getElementById('contrast-text');
+    const rSlider = document.getElementById('r-slider');
+    const gSlider = document.getElementById('g-slider');
+    const bSlider = document.getElementById('b-slider');
+    const rValue = document.getElementById('r-value');
+    const gValue = document.getElementById('g-value');
+    const bValue = document.getElementById('b-value');
+    const codesEl = document.getElementById('codes');
+    const harmonyEl = document.getElementById('harmony');
+    const paletteEl = document.getElementById('palette');
+    const nativePicker = document.getElementById('native-picker');
+    const toast = document.getElementById('toast');
+    
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1500);
+    }
+    
+    function rgbToHex(r, g, b) {
+      return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+    }
+    
+    function hexToRgb(hex) {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : null;
+    }
+    
+    function rgbToHsl(r, g, b) {
+      r /= 255; g /= 255; b /= 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      let h, s, l = (max + min) / 2;
+      
+      if (max === min) {
+        h = s = 0;
+      } else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+          case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+          case g: h = ((b - r) / d + 2) / 6; break;
+          case b: h = ((r - g) / d + 4) / 6; break;
+        }
+      }
+      return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+    }
+    
+    function getLuminance(r, g, b) {
+      const [rs, gs, bs] = [r, g, b].map(c => {
+        c /= 255;
+        return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+    }
+    
+    function update() {
+      const hex = rgbToHex(r, g, b);
+      const hsl = rgbToHsl(r, g, b);
+      
+      // Update preview
+      preview.style.background = hex;
+      nativePicker.value = hex;
+      
+      // Update text contrast
+      const lum = getLuminance(r, g, b);
+      const textColor = lum > 0.5 ? '#000' : '#fff';
+      contrastText.style.color = textColor;
+      contrastText.style.background = lum > 0.5 ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)';
+      
+      // Update sliders
+      rSlider.value = r; gSlider.value = g; bSlider.value = b;
+      rValue.textContent = r; gValue.textContent = g; bValue.textContent = b;
+      
+      // Update color codes
+      codesEl.innerHTML = `
+        <div class="color-code" onclick="copyCode('${hex}')">
+          <div class="color-code-label">HEX</div>
+          <div class="color-code-value">${hex}</div>
+        </div>
+        <div class="color-code" onclick="copyCode('rgb(${r}, ${g}, ${b})')">
+          <div class="color-code-label">RGB</div>
+          <div class="color-code-value">rgb(${r}, ${g}, ${b})</div>
+        </div>
+        <div class="color-code" onclick="copyCode('hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)')">
+          <div class="color-code-label">HSL</div>
+          <div class="color-code-value">hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)</div>
+        </div>
+        <div class="color-code" onclick="copyCode('${r}, ${g}, ${b}')">
+          <div class="color-code-label">RGB Values</div>
+          <div class="color-code-value">${r}, ${g}, ${b}</div>
+        </div>
+      `;
+      
+      // Update harmony
+      const compH = (hsl.h + 180) % 360;
+      const triad1 = (hsl.h + 120) % 360;
+      const triad2 = (hsl.h + 240) % 360;
+      harmonyEl.innerHTML = `
+        <div class="harmony-color" style="background: ${hex}" onclick="copyCode('${hex}')"></div>
+        <div class="harmony-color" style="background: hsl(${compH}, ${hsl.s}%, ${hsl.l}%)" onclick="copyCode('hsl(${compH}, ${hsl.s}%, ${hsl.l}%)')"></div>
+        <div class="harmony-color" style="background: hsl(${triad1}, ${hsl.s}%, ${hsl.l}%)" onclick="copyCode('hsl(${triad1}, ${hsl.s}%, ${hsl.l}%)')"></div>
+        <div class="harmony-color" style="background: hsl(${triad2}, ${hsl.s}%, ${hsl.l}%)" onclick="copyCode('hsl(${triad2}, ${hsl.s}%, ${hsl.l}%)')"></div>
+      `;
+    }
+    
+    function renderPalette() {
+      paletteEl.innerHTML = savedColors.map(c => 
+        `<div class="saved-color" style="background: ${c}" onclick="loadColor('${c}')"></div>`
+      ).join('') + `<div class="saved-color add-btn" onclick="saveColor()">+</div>`;
+    }
+    
+    window.copyCode = function(code) {
+      navigator.clipboard.writeText(code);
+      showToast('Copied: ' + code);
+    };
+    
+    window.loadColor = function(hex) {
+      const rgb = hexToRgb(hex);
+      if (rgb) {
+        r = rgb.r; g = rgb.g; b = rgb.b;
+        update();
+      }
+    };
+    
+    window.saveColor = function() {
+      const hex = rgbToHex(r, g, b);
+      if (!savedColors.includes(hex)) {
+        savedColors.push(hex);
+        if (savedColors.length > 12) savedColors.shift();
+        localStorage.setItem('colors-palette', JSON.stringify(savedColors));
+        renderPalette();
+        showToast('Color saved!');
+      }
+    };
+    
+    // Event listeners
+    rSlider.addEventListener('input', () => { r = parseInt(rSlider.value); update(); });
+    gSlider.addEventListener('input', () => { g = parseInt(gSlider.value); update(); });
+    bSlider.addEventListener('input', () => { b = parseInt(bSlider.value); update(); });
+    
+    nativePicker.addEventListener('input', () => {
+      const rgb = hexToRgb(nativePicker.value);
+      if (rgb) {
+        r = rgb.r; g = rgb.g; b = rgb.b;
+        update();
+      }
+    });
+    
+    // Init
+    update();
+    renderPalette();
+  </script>
+</body>
+</html>

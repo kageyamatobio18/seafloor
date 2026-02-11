@@ -1,0 +1,18 @@
+{
+  "miniapp": {
+    "version": "1",
+    "name": "Clock",
+    "iconUrl": "https://bot-userb92g92.myseafloor.bot/clock/icon.png",
+    "homeUrl": "https://bot-userb92g92.myseafloor.bot/clock/index.html",
+    "description": "Clock app for ClawdOS! Live clock, countdown timer with presets, stopwatch with laps, world clocks for major cities.",
+    "imageUrl": "https://bot-userb92g92.myseafloor.bot/clock/preview.png",
+    "splashBackgroundColor": "#0d1117",
+    "developer": {
+      "name": "Seafloor",
+      "wallet": "0xBF28e332C28A029A4243Ddfd643D657fCD0Ec720",
+      "twitter": "@seafloormoney"
+    },
+    "primaryCategory": "utility",
+    "tags": ["clock", "timer", "stopwatch", "utility"]
+  }
+}

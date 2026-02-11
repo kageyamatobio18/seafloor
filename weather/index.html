@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weather</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      background: linear-gradient(135deg, #1a1c2e 0%, #0d1117 100%);
+      color: #c9d1d9;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .weather-card {
+      background: rgba(22, 27, 34, 0.9);
+      border: 1px solid #30363d;
+      border-radius: 24px;
+      padding: 30px;
+      width: 100%;
+      max-width: 400px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+    
+    .search-box {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    
+    .search-input {
+      flex: 1;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: #c9d1d9;
+      font-size: 14px;
+      outline: none;
+    }
+    
+    .search-input:focus {
+      border-color: #58a6ff;
+    }
+    
+    .search-btn {
+      background: #238636;
+      border: none;
+      border-radius: 12px;
+      color: white;
+      padding: 12px 16px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    
+    .search-btn:hover {
+      background: #2ea043;
+    }
+    
+    .location {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .city-name {
+      font-size: 28px;
+      font-weight: 700;
+      color: #c9d1d9;
+    }
+    
+    .date {
+      font-size: 14px;
+      color: #8b949e;
+      margin-top: 4px;
+    }
+    
+    .current-weather {
+      text-align: center;
+      padding: 20px 0;
+      border-top: 1px solid #30363d;
+      border-bottom: 1px solid #30363d;
+    }
+    
+    .weather-icon {
+      font-size: 80px;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+    
+    .temperature {
+      font-size: 64px;
+      font-weight: 300;
+      color: #c9d1d9;
+    }
+    
+    .temperature span {
+      font-size: 32px;
+      color: #8b949e;
+    }
+    
+    .description {
+      font-size: 18px;
+      color: #8b949e;
+      text-transform: capitalize;
+      margin-top: 8px;
+    }
+    
+    .details {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 24px;
+    }
+    
+    .detail-item {
+      text-align: center;
+      padding: 16px;
+      background: #0d1117;
+      border-radius: 12px;
+    }
+    
+    .detail-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+    
+    .detail-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: #c9d1d9;
+    }
+    
+    .detail-label {
+      font-size: 11px;
+      color: #8b949e;
+      margin-top: 4px;
+    }
+    
+    .forecast {
+      margin-top: 24px;
+    }
+    
+    .forecast-title {
+      font-size: 14px;
+      color: #8b949e;
+      margin-bottom: 12px;
+    }
+    
+    .forecast-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+    
+    .forecast-day {
+      text-align: center;
+      padding: 12px 8px;
+      background: #0d1117;
+      border-radius: 12px;
+    }
+    
+    .forecast-day-name {
+      font-size: 11px;
+      color: #8b949e;
+      margin-bottom: 8px;
+    }
+    
+    .forecast-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+    
+    .forecast-temp {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #8b949e;
+    }
+    
+    .error {
+      text-align: center;
+      padding: 20px;
+      color: #f85149;
+      background: rgba(248, 81, 73, 0.1);
+      border-radius: 12px;
+    }
+    
+    .credits {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 11px;
+      color: #6e7681;
+    }
+  </style>
+</head>
+<body>
+  <div class="weather-card">
+    <div class="search-box">
+      <input type="text" class="search-input" id="city-input" placeholder="Enter city name..." />
+      <button class="search-btn" id="search-btn">🔍</button>
+    </div>
+    
+    <div id="weather-content">
+      <div class="loading" id="loading">
+        Loading weather data...
+      </div>
+    </div>
+    
+    <div class="credits">
+      Powered by Open-Meteo API
+    </div>
+  </div>
+  
+  <script src="https://clawdos.space/sdk/clawd-miniapp-sdk.js"></script>
+  <script>
+    if (window.clawd) {
+      clawd.ready();
+      clawd.setTitle('Weather');
+    }
+    
+    const cityInput = document.getElementById('city-input');
+    const searchBtn = document.getElementById('search-btn');
+    const weatherContent = document.getElementById('weather-content');
+    
+    const weatherIcons = {
+      0: '☀️',   // Clear
+      1: '🌤️',  // Mainly clear
+      2: '⛅',   // Partly cloudy
+      3: '☁️',   // Overcast
+      45: '🌫️', // Foggy
+      48: '🌫️', // Depositing rime fog
+      51: '🌧️', // Light drizzle
+      53: '🌧️', // Moderate drizzle
+      55: '🌧️', // Dense drizzle
+      61: '🌧️', // Slight rain
+      63: '🌧️', // Moderate rain
+      65: '🌧️', // Heavy rain
+      71: '🌨️', // Slight snow
+      73: '🌨️', // Moderate snow
+      75: '🌨️', // Heavy snow
+      77: '🌨️', // Snow grains
+      80: '🌧️', // Slight rain showers
+      81: '🌧️', // Moderate rain showers
+      82: '🌧️', // Violent rain showers
+      85: '🌨️', // Slight snow showers
+      86: '🌨️', // Heavy snow showers
+      95: '⛈️', // Thunderstorm
+      96: '⛈️', // Thunderstorm with slight hail
+      99: '⛈️'  // Thunderstorm with heavy hail
+    };
+    
+    const weatherDescriptions = {
+      0: 'Clear sky',
+      1: 'Mainly clear',
+      2: 'Partly cloudy',
+      3: 'Overcast',
+      45: 'Foggy',
+      48: 'Rime fog',
+      51: 'Light drizzle',
+      53: 'Drizzle',
+      55: 'Dense drizzle',
+      61: 'Light rain',
+      63: 'Rain',
+      65: 'Heavy rain',
+      71: 'Light snow',
+      73: 'Snow',
+      75: 'Heavy snow',
+      77: 'Snow grains',
+      80: 'Rain showers',
+      81: 'Rain showers',
+      82: 'Heavy showers',
+      85: 'Snow showers',
+      86: 'Heavy snow showers',
+      95: 'Thunderstorm',
+      96: 'Thunderstorm with hail',
+      99: 'Severe thunderstorm'
+    };
+    
+    async function geocode(city) {
+      const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`);
+      const data = await res.json();
+      if (!data.results || data.results.length === 0) {
+        throw new Error('City not found');
+      }
+      return data.results[0];
+    }
+    
+    async function getWeather(lat, lon) {
+      const res = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+        `&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m` +
+        `&daily=weather_code,temperature_2m_max,temperature_2m_min` +
+        `&timezone=auto`
+      );
+      return res.json();
+    }
+    
+    function formatDate(date) {
+      return date.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+    }
+    
+    function getDayName(dateStr) {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-US', { weekday: 'short' });
+    }
+    
+    async function loadWeather(city) {
+      weatherContent.innerHTML = '<div class="loading">Loading weather data...</div>';
+      
+      try {
+        const location = await geocode(city);
+        const weather = await getWeather(location.latitude, location.longitude);
+        
+        const current = weather.current;
+        const daily = weather.daily;
+        const code = current.weather_code;
+        
+        weatherContent.innerHTML = `
+          <div class="location">
+            <div class="city-name">${location.name}, ${location.country || ''}</div>
+            <div class="date">${formatDate(new Date())}</div>
+          </div>
+          
+          <div class="current-weather">
+            <div class="weather-icon">${weatherIcons[code] || '🌡️'}</div>
+            <div class="temperature">${Math.round(current.temperature_2m)}<span>°C</span></div>
+            <div class="description">${weatherDescriptions[code] || 'Unknown'}</div>
+          </div>
+          
+          <div class="details">
+            <div class="detail-item">
+              <div class="detail-icon">💧</div>
+              <div class="detail-value">${current.relative_humidity_2m}%</div>
+              <div class="detail-label">Humidity</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-icon">💨</div>
+              <div class="detail-value">${Math.round(current.wind_speed_10m)}</div>
+              <div class="detail-label">Wind km/h</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-icon">🌡️</div>
+              <div class="detail-value">${Math.round(daily.temperature_2m_max[0])}°</div>
+              <div class="detail-label">High today</div>
+            </div>
+          </div>
+          
+          <div class="forecast">
+            <div class="forecast-title">5-Day Forecast</div>
+            <div class="forecast-grid">
+              ${daily.time.slice(1, 6).map((date, i) => `
+                <div class="forecast-day">
+                  <div class="forecast-day-name">${getDayName(date)}</div>
+                  <div class="forecast-icon">${weatherIcons[daily.weather_code[i + 1]] || '🌡️'}</div>
+                  <div class="forecast-temp">${Math.round(daily.temperature_2m_max[i + 1])}°</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+        
+        // Save last city
+        localStorage.setItem('weather-city', city);
+        
+      } catch (error) {
+        weatherContent.innerHTML = `
+          <div class="error">
+            ${error.message === 'City not found' ? 
+              '🔍 City not found. Try another name.' : 
+              '❌ Failed to load weather data.'}
+          </div>
+        `;
+      }
+    }
+    
+    searchBtn.onclick = () => {
+      const city = cityInput.value.trim();
+      if (city) loadWeather(city);
+    };
+    
+    cityInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const city = cityInput.value.trim();
+        if (city) loadWeather(city);
+      }
+    });
+    
+    // Load last city or default
+    const lastCity = localStorage.getItem('weather-city') || 'New York';
+    cityInput.value = lastCity;
+    loadWeather(lastCity);
+  </script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "miniapp": {
+    "version": "1",
+    "name": "ClawdOS Terminal",
+    "iconUrl": "https://bot-userb92g92.myseafloor.bot/terminal/icon.png",
+    "homeUrl": "https://bot-userb92g92.myseafloor.bot/terminal/index.html",
+    "description": "A fully functional terminal emulator for ClawdOS. Run commands, navigate directories, view files, and feel like a hacker. Features cowsay, neofetch, and more!",
+    "imageUrl": "https://bot-userb92g92.myseafloor.bot/terminal/preview.png",
+    "splashBackgroundColor": "#0d1117",
+    "developer": {
+      "name": "Seafloor",
+      "wallet": "0xBF28e332C28A029A4243Ddfd643D657fCD0Ec720",
+      "twitter": "@seafloormoney"
+    },
+    "primaryCategory": "utility",
+    "tags": ["terminal", "shell", "cli", "hacker", "utility"]
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "miniapp": {
+    "version": "1",
+    "name": "Units",
+    "iconUrl": "https://bot-userb92g92.myseafloor.bot/units/icon.png",
+    "homeUrl": "https://bot-userb92g92.myseafloor.bot/units/index.html",
+    "description": "Convert units across 7 categories: length, weight, temperature, volume, area, speed, and data storage. Swap button, quick values, formula display.",
+    "imageUrl": "https://bot-userb92g92.myseafloor.bot/units/preview.png",
+    "splashBackgroundColor": "#0d1117",
+    "developer": {
+      "name": "Seafloor",
+      "wallet": "0xBF28e332C28A029A4243Ddfd643D657fCD0Ec720",
+      "twitter": "@seafloormoney"
+    },
+    "primaryCategory": "utility",
+    "tags": ["units", "converter", "utility"]
+  }
+}

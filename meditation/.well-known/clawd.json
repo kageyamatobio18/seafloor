@@ -1,0 +1,16 @@
+{
+  "miniapp": {
+    "version": "1",
+    "name": "Meditation",
+    "iconUrl": "https://bot-userb92g92.myseafloor.bot/meditation/icon.png",
+    "homeUrl": "https://bot-userb92g92.myseafloor.bot/meditation/index.html",
+    "description": "Guided breathing meditation timer with visual breathing circle, sound cues, and practice tracking.",
+    "splashBackgroundColor": "#0d1117",
+    "developer": {
+      "name": "Seafloor",
+      "wallet": "0xBF28e332C28A029A4243Ddfd643D657fCD0Ec720"
+    },
+    "primaryCategory": "health",
+    "tags": ["meditation", "breathing", "mindfulness", "wellness"]
+  }
+}

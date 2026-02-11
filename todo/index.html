@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Todo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    
+    .todo-app {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 500px;
+      overflow: hidden;
+    }
+    
+    .header {
+      padding: 24px;
+      border-bottom: 1px solid #30363d;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .title {
+      font-size: 24px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .task-count {
+      font-size: 14px;
+      color: #8b949e;
+    }
+    
+    .add-form {
+      padding: 16px 24px;
+      display: flex;
+      gap: 12px;
+      border-bottom: 1px solid #30363d;
+    }
+    
+    .add-input {
+      flex: 1;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: #c9d1d9;
+      font-size: 14px;
+      outline: none;
+    }
+    
+    .add-input:focus {
+      border-color: #58a6ff;
+    }
+    
+    .add-btn {
+      background: #238636;
+      border: none;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    
+    .add-btn:hover {
+      background: #2ea043;
+    }
+    
+    .filters {
+      padding: 12px 24px;
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid #30363d;
+    }
+    
+    .filter-btn {
+      padding: 6px 12px;
+      background: transparent;
+      border: 1px solid #30363d;
+      color: #8b949e;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    
+    .filter-btn.active {
+      background: #58a6ff;
+      border-color: #58a6ff;
+      color: #0d1117;
+    }
+    
+    .filter-btn:hover:not(.active) {
+      color: #c9d1d9;
+    }
+    
+    .tasks {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .task {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 24px;
+      border-bottom: 1px solid #21262d;
+      transition: background 0.15s;
+    }
+    
+    .task:hover {
+      background: #21262d;
+    }
+    
+    .task.completed .task-text {
+      text-decoration: line-through;
+      color: #6e7681;
+    }
+    
+    .checkbox {
+      width: 22px;
+      height: 22px;
+      border: 2px solid #30363d;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    
+    .checkbox:hover {
+      border-color: #58a6ff;
+    }
+    
+    .task.completed .checkbox {
+      background: #238636;
+      border-color: #238636;
+    }
+    
+    .checkbox::after {
+      content: '✓';
+      color: white;
+      font-size: 12px;
+      opacity: 0;
+    }
+    
+    .task.completed .checkbox::after {
+      opacity: 1;
+    }
+    
+    .task-text {
+      flex: 1;
+      font-size: 15px;
+    }
+    
+    .task-date {
+      font-size: 11px;
+      color: #6e7681;
+      margin-top: 4px;
+    }
+    
+    .delete-btn {
+      background: none;
+      border: none;
+      color: #6e7681;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    
+    .task:hover .delete-btn {
+      opacity: 1;
+    }
+    
+    .delete-btn:hover {
+      color: #f85149;
+    }
+    
+    .empty-state {
+      padding: 60px 24px;
+      text-align: center;
+      color: #6e7681;
+    }
+    
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    
+    .footer {
+      padding: 16px 24px;
+      border-top: 1px solid #30363d;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #6e7681;
+    }
+    
+    .clear-completed {
+      background: none;
+      border: none;
+      color: #f85149;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    
+    .clear-completed:hover {
+      text-decoration: underline;
+    }
+    
+    .priority-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 10px;
+      margin-left: 8px;
+    }
+    
+    .priority-high {
+      background: rgba(248, 81, 73, 0.2);
+      color: #f85149;
+    }
+    
+    .priority-med {
+      background: rgba(210, 153, 34, 0.2);
+      color: #d29922;
+    }
+  </style>
+</head>
+<body>
+  <div class="todo-app">
+    <div class="header">
+      <div class="title">✅ Tasks</div>
+      <div class="task-count" id="task-count">0 tasks</div>
+    </div>
+    
+    <form class="add-form" id="add-form">
+      <input type="text" class="add-input" id="new-task" placeholder="What needs to be done?" autocomplete="off" />
+      <button type="submit" class="add-btn">Add</button>
+    </form>
+    
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="active">Active</button>
+      <button class="filter-btn" data-filter="completed">Completed</button>
+    </div>
+    
+    <div class="tasks" id="tasks"></div>
+    
+    <div class="footer">
+      <span id="remaining">0 remaining</span>
+      <button class="clear-completed" id="clear-completed">Clear completed</button>
+    </div>
+  </div>
+  
+  <script src="https://clawdos.space/sdk/clawd-miniapp-sdk.js"></script>
+  <script>
+    if (window.clawd) {
+      clawd.ready();
+      clawd.setTitle('Tasks');
+    }
+    
+    // State
+    let tasks = JSON.parse(localStorage.getItem('clawdos-tasks') || '[]');
+    let filter = 'all';
+    
+    // DOM
+    const tasksEl = document.getElementById('tasks');
+    const form = document.getElementById('add-form');
+    const newTaskInput = document.getElementById('new-task');
+    const taskCount = document.getElementById('task-count');
+    const remaining = document.getElementById('remaining');
+    
+    // Save tasks
+    function saveTasks() {
+      localStorage.setItem('clawdos-tasks', JSON.stringify(tasks));
+    }
+    
+    // Render tasks
+    function renderTasks() {
+      const filtered = tasks.filter(t => {
+        if (filter === 'active') return !t.completed;
+        if (filter === 'completed') return t.completed;
+        return true;
+      });
+      
+      if (filtered.length === 0) {
+        tasksEl.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">${filter === 'completed' ? '🎉' : '📝'}</div>
+            <div>${filter === 'completed' ? 'No completed tasks yet!' : 'No tasks yet. Add one above!'}</div>
+          </div>
+        `;
+      } else {
+        tasksEl.innerHTML = filtered.map(task => {
+          const date = new Date(task.createdAt);
+          const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          
+          return `
+            <div class="task ${task.completed ? 'completed' : ''}" data-id="${task.id}">
+              <div class="checkbox" onclick="toggleTask(${task.id})"></div>
+              <div style="flex: 1">
+                <div class="task-text">${escapeHtml(task.text)}</div>
+                <div class="task-date">${dateStr}</div>
+              </div>
+              <button class="delete-btn" onclick="deleteTask(${task.id})">🗑️</button>
+            </div>
+          `;
+        }).join('');
+      }
+      
+      // Update counts
+      const total = tasks.length;
+      const completed = tasks.filter(t => t.completed).length;
+      const active = total - completed;
+      
+      taskCount.textContent = `${total} task${total !== 1 ? 's' : ''}`;
+      remaining.textContent = `${active} remaining`;
+    }
+    
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    // Add task
+    form.onsubmit = (e) => {
+      e.preventDefault();
+      const text = newTaskInput.value.trim();
+      if (!text) return;
+      
+      tasks.unshift({
+        id: Date.now(),
+        text,
+        completed: false,
+        createdAt: new Date().toISOString()
+      });
+      
+      saveTasks();
+      renderTasks();
+      newTaskInput.value = '';
+      
+      if (window.clawd) {
+        clawd.showToast('Task added!');
+      }
+    };
+    
+    // Toggle task
+    window.toggleTask = (id) => {
+      const task = tasks.find(t => t.id === id);
+      if (task) {
+        task.completed = !task.completed;
+        saveTasks();
+        renderTasks();
+      }
+    };
+    
+    // Delete task
+    window.deleteTask = (id) => {
+      tasks = tasks.filter(t => t.id !== id);
+      saveTasks();
+      renderTasks();
+    };
+    
+    // Filters
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filter = btn.dataset.filter;
+        renderTasks();
+      };
+    });
+    
+    // Clear completed
+    document.getElementById('clear-completed').onclick = () => {
+      tasks = tasks.filter(t => !t.completed);
+      saveTasks();
+      renderTasks();
+    };
+    
+    // Initial render
+    renderTasks();
+  </script>
+</body>
+</html>

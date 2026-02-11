@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Journal</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container { max-width: 700px; margin: 0 auto; }
+    
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    
+    .title { font-size: 24px; font-weight: 700; }
+    
+    .date-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .nav-btn {
+      background: #21262d;
+      border: 1px solid #30363d;
+      color: #c9d1d9;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    
+    .nav-btn:hover { background: #30363d; }
+    
+    .current-date {
+      font-size: 16px;
+      color: #58a6ff;
+      min-width: 150px;
+      text-align: center;
+    }
+    
+    .entry-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    
+    .entry-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .entry-icon { font-size: 24px; }
+    
+    .entry-title { font-size: 16px; font-weight: 600; }
+    
+    .entry-prompt {
+      font-size: 13px;
+      color: #8b949e;
+      margin-bottom: 8px;
+    }
+    
+    .entry-textarea {
+      width: 100%;
+      min-height: 100px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      color: #c9d1d9;
+      padding: 12px;
+      font-size: 15px;
+      line-height: 1.6;
+      resize: vertical;
+      outline: none;
+      font-family: inherit;
+    }
+    
+    .entry-textarea:focus { border-color: #58a6ff; }
+    
+    .mood-selector {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    
+    .mood-btn {
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .mood-btn:hover { background: #30363d; transform: scale(1.1); }
+    .mood-btn.selected { background: #238636; border-color: #238636; transform: scale(1.15); }
+    
+    .gratitude-list {
+      list-style: none;
+    }
+    
+    .gratitude-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    
+    .gratitude-bullet {
+      color: #3fb950;
+      font-size: 14px;
+    }
+    
+    .gratitude-input {
+      flex: 1;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #c9d1d9;
+      padding: 8px 12px;
+      font-size: 14px;
+      outline: none;
+    }
+    
+    .gratitude-input:focus { border-color: #58a6ff; }
+    
+    .save-indicator {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #238636;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    .save-indicator.show { opacity: 1; }
+    
+    .stats {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .stat {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 12px 16px;
+      text-align: center;
+      flex: 1;
+    }
+    
+    .stat-value { font-size: 20px; font-weight: 700; color: #58a6ff; }
+    .stat-label { font-size: 11px; color: #8b949e; text-transform: uppercase; }
+    
+    .calendar-strip {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+      padding: 4px 0;
+    }
+    
+    .cal-day {
+      min-width: 40px;
+      height: 40px;
+      background: #21262d;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    
+    .cal-day:hover { background: #30363d; }
+    .cal-day.has-entry { background: #238636; }
+    .cal-day.today { border: 2px solid #58a6ff; }
+    .cal-day.selected { background: #58a6ff; color: #0d1117; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 class="title">📓 Daily Journal</h1>
+      <div class="date-nav">
+        <button class="nav-btn" id="prev-day">&lt;</button>
+        <span class="current-date" id="current-date"></span>
+        <button class="nav-btn" id="next-day">&gt;</button>
+      </div>
+    </div>
+    
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value" id="streak">0</div>
+        <div class="stat-label">Day Streak</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="total-entries">0</div>
+        <div class="stat-label">Total Entries</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="words-today">0</div>
+        <div class="stat-label">Words Today</div>
+      </div>
+    </div>
+    
+    <div class="calendar-strip" id="calendar"></div>
+    
+    <div class="entry-card">
+      <div class="entry-header">
+        <span class="entry-icon">😊</span>
+        <span class="entry-title">How are you feeling?</span>
+      </div>
+      <div class="mood-selector" id="mood-selector">
+        <button class="mood-btn" data-mood="great">😄</button>
+        <button class="mood-btn" data-mood="good">🙂</button>
+        <button class="mood-btn" data-mood="okay">😐</button>
+        <button class="mood-btn" data-mood="down">😔</button>
+        <button class="mood-btn" data-mood="stressed">😫</button>
+      </div>
+    </div>
+    
+    <div class="entry-card">
+      <div class="entry-header">
+        <span class="entry-icon">✨</span>
+        <span class="entry-title">Gratitude</span>
+      </div>
+      <div class="entry-prompt">What are you grateful for today?</div>
+      <ul class="gratitude-list">
+        <li class="gratitude-item">
+          <span class="gratitude-bullet">●</span>
+          <input type="text" class="gratitude-input" id="gratitude-1" placeholder="Something you're thankful for..." />
+        </li>
+        <li class="gratitude-item">
+          <span class="gratitude-bullet">●</span>
+          <input type="text" class="gratitude-input" id="gratitude-2" placeholder="Another blessing..." />
+        </li>
+        <li class="gratitude-item">
+          <span class="gratitude-bullet">●</span>
+          <input type="text" class="gratitude-input" id="gratitude-3" placeholder="One more thing..." />
+        </li>
+      </ul>
+    </div>
+    
+    <div class="entry-card">
+      <div class="entry-header">
+        <span class="entry-icon">📝</span>
+        <span class="entry-title">Today's Reflection</span>
+      </div>
+      <div class="entry-prompt">What happened today? How did it make you feel?</div>
+      <textarea class="entry-textarea" id="reflection" placeholder="Write freely about your day..."></textarea>
+    </div>
+    
+    <div class="entry-card">
+      <div class="entry-header">
+        <span class="entry-icon">🎯</span>
+        <span class="entry-title">Tomorrow's Intention</span>
+      </div>
+      <div class="entry-prompt">What do you want to focus on tomorrow?</div>
+      <textarea class="entry-textarea" id="intention" placeholder="Set an intention for tomorrow..." style="min-height: 60px;"></textarea>
+    </div>
+  </div>
+  
+  <div class="save-indicator" id="save-indicator">✓ Saved</div>
+  
+  <script src="https://clawdos.space/sdk/clawd-miniapp-sdk.js"></script>
+  <script>
+    try { if (window.clawd) clawd.ready(); } catch(e) {}
+    
+    let currentDate = new Date();
+    let entries = JSON.parse(localStorage.getItem('journal-entries') || '{}');
+    
+    function getDateKey(d) {
+      return d.toISOString().split('T')[0];
+    }
+    
+    function formatDate(d) {
+      return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    }
+    
+    function showSaved() {
+      const indicator = document.getElementById('save-indicator');
+      indicator.classList.add('show');
+      setTimeout(() => indicator.classList.remove('show'), 1500);
+    }
+    
+    function save() {
+      const key = getDateKey(currentDate);
+      const entry = {
+        mood: document.querySelector('.mood-btn.selected')?.dataset.mood || '',
+        gratitude: [
+          document.getElementById('gratitude-1').value,
+          document.getElementById('gratitude-2').value,
+          document.getElementById('gratitude-3').value
+        ].filter(g => g.trim()),
+        reflection: document.getElementById('reflection').value,
+        intention: document.getElementById('intention').value,
+        updatedAt: Date.now()
+      };
+      
+      if (entry.mood || entry.gratitude.length || entry.reflection || entry.intention) {
+        entries[key] = entry;
+      } else {
+        delete entries[key];
+      }
+      
+      localStorage.setItem('journal-entries', JSON.stringify(entries));
+      showSaved();
+      updateStats();
+      renderCalendar();
+    }
+    
+    function load() {
+      const key = getDateKey(currentDate);
+      const entry = entries[key] || {};
+      
+      // Mood
+      document.querySelectorAll('.mood-btn').forEach(btn => {
+        btn.classList.toggle('selected', btn.dataset.mood === entry.mood);
+      });
+      
+      // Gratitude
+      const gratitude = entry.gratitude || [];
+      document.getElementById('gratitude-1').value = gratitude[0] || '';
+      document.getElementById('gratitude-2').value = gratitude[1] || '';
+      document.getElementById('gratitude-3').value = gratitude[2] || '';
+      
+      // Text
+      document.getElementById('reflection').value = entry.reflection || '';
+      document.getElementById('intention').value = entry.intention || '';
+      
+      document.getElementById('current-date').textContent = formatDate(currentDate);
+      updateStats();
+    }
+    
+    function updateStats() {
+      const keys = Object.keys(entries).sort();
+      document.getElementById('total-entries').textContent = keys.length;
+      
+      // Calculate streak
+      let streak = 0;
+      let checkDate = new Date();
+      while (true) {
+        const key = getDateKey(checkDate);
+        if (entries[key]) {
+          streak++;
+          checkDate.setDate(checkDate.getDate() - 1);
+        } else if (streak === 0) {
+          checkDate.setDate(checkDate.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+      document.getElementById('streak').textContent = streak;
+      
+      // Words today
+      const todayEntry = entries[getDateKey(currentDate)] || {};
+      const words = ((todayEntry.reflection || '') + ' ' + (todayEntry.intention || '')).trim().split(/\s+/).filter(w => w).length;
+      document.getElementById('words-today').textContent = words;
+    }
+    
+    function renderCalendar() {
+      const cal = document.getElementById('calendar');
+      cal.innerHTML = '';
+      
+      for (let i = -7; i <= 7; i++) {
+        const d = new Date(currentDate);
+        d.setDate(d.getDate() + i);
+        const key = getDateKey(d);
+        const today = getDateKey(new Date());
+        const selected = getDateKey(currentDate);
+        
+        const div = document.createElement('div');
+        div.className = 'cal-day';
+        if (entries[key]) div.classList.add('has-entry');
+        if (key === today) div.classList.add('today');
+        if (key === selected) div.classList.add('selected');
+        div.textContent = d.getDate();
+        div.onclick = () => {
+          currentDate = d;
+          load();
+          renderCalendar();
+        };
+        cal.appendChild(div);
+      }
+    }
+    
+    // Event listeners
+    document.querySelectorAll('.mood-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        save();
+      });
+    });
+    
+    ['gratitude-1', 'gratitude-2', 'gratitude-3', 'reflection', 'intention'].forEach(id => {
+      document.getElementById(id).addEventListener('input', debounce(save, 500));
+    });
+    
+    document.getElementById('prev-day').addEventListener('click', () => {
+      currentDate.setDate(currentDate.getDate() - 1);
+      load();
+      renderCalendar();
+    });
+    
+    document.getElementById('next-day').addEventListener('click', () => {
+      currentDate.setDate(currentDate.getDate() + 1);
+      load();
+      renderCalendar();
+    });
+    
+    function debounce(fn, ms) {
+      let timeout;
+      return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => fn(...args), ms);
+      };
+    }
+    
+    // Init
+    load();
+    renderCalendar();
+  </script>
+</body>
+</html>

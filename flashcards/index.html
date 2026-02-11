@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flashcards</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .header {
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .title { font-size: 20px; font-weight: 700; }
+    
+    .deck-selector {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    select, .btn {
+      background: #21262d;
+      border: 1px solid #30363d;
+      color: #c9d1d9;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    select:focus, .btn:focus { outline: none; border-color: #58a6ff; }
+    .btn:hover { background: #30363d; }
+    .btn-primary { background: #238636; border-color: #238636; }
+    .btn-primary:hover { background: #2ea043; }
+    
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    
+    .card-container {
+      perspective: 1000px;
+      width: 100%;
+      max-width: 500px;
+      height: 300px;
+      cursor: pointer;
+    }
+    
+    .card {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.6s;
+    }
+    
+    .card.flipped { transform: rotateY(180deg); }
+    
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 30px;
+      border-radius: 16px;
+      font-size: 20px;
+      line-height: 1.5;
+    }
+    
+    .card-front {
+      background: linear-gradient(145deg, #161b22, #21262d);
+      border: 1px solid #30363d;
+    }
+    
+    .card-back {
+      background: linear-gradient(145deg, #238636, #2ea043);
+      transform: rotateY(180deg);
+      color: white;
+    }
+    
+    .card-hint {
+      font-size: 12px;
+      color: #8b949e;
+      margin-top: 20px;
+    }
+    
+    .progress {
+      display: flex;
+      gap: 16px;
+      margin-top: 30px;
+      padding: 16px 24px;
+      background: #161b22;
+      border-radius: 12px;
+    }
+    
+    .progress-item {
+      text-align: center;
+    }
+    
+    .progress-value {
+      font-size: 24px;
+      font-weight: 700;
+    }
+    
+    .progress-label {
+      font-size: 11px;
+      color: #8b949e;
+      text-transform: uppercase;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 12px;
+      margin-top: 30px;
+    }
+    
+    .controls .btn {
+      padding: 12px 24px;
+      font-size: 16px;
+    }
+    
+    .btn-wrong { background: #da3633; border-color: #da3633; }
+    .btn-wrong:hover { background: #f85149; }
+    .btn-correct { background: #238636; border-color: #238636; }
+    .btn-correct:hover { background: #2ea043; }
+    
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 100;
+    }
+    
+    .modal.show { display: flex; }
+    
+    .modal-content {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    
+    .modal-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    
+    .form-group {
+      margin-bottom: 16px;
+    }
+    
+    .form-label {
+      display: block;
+      font-size: 12px;
+      color: #8b949e;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    
+    .form-input, .form-textarea {
+      width: 100%;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      color: #c9d1d9;
+      padding: 10px 12px;
+      font-size: 14px;
+      outline: none;
+    }
+    
+    .form-input:focus, .form-textarea:focus { border-color: #58a6ff; }
+    .form-textarea { min-height: 80px; resize: vertical; }
+    
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    
+    .empty-state {
+      text-align: center;
+      color: #8b949e;
+    }
+    
+    .empty-icon { font-size: 48px; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span class="title">📚 Flashcards</span>
+    <div class="deck-selector">
+      <select id="deck-select"></select>
+      <button class="btn" id="new-deck-btn">+ Deck</button>
+      <button class="btn" id="add-card-btn">+ Card</button>
+    </div>
+  </div>
+  
+  <div class="main">
+    <div class="card-container" id="card-container">
+      <div class="card" id="card">
+        <div class="card-face card-front">
+          <div>
+            <div id="card-front-text">No cards yet</div>
+            <div class="card-hint">Click to flip</div>
+          </div>
+        </div>
+        <div class="card-face card-back">
+          <div id="card-back-text">Add some cards!</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="progress">
+      <div class="progress-item">
+        <div class="progress-value" id="current">0</div>
+        <div class="progress-label">Current</div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-value" id="total">0</div>
+        <div class="progress-label">Total</div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-value" id="correct">0</div>
+        <div class="progress-label">Correct</div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-value" id="wrong">0</div>
+        <div class="progress-label">Wrong</div>
+      </div>
+    </div>
+    
+    <div class="controls">
+      <button class="btn btn-wrong" id="wrong-btn">✗ Wrong</button>
+      <button class="btn" id="flip-btn">Flip</button>
+      <button class="btn btn-correct" id="correct-btn">✓ Correct</button>
+    </div>
+  </div>
+  
+  <div class="modal" id="deck-modal">
+    <div class="modal-content">
+      <div class="modal-title">New Deck</div>
+      <div class="form-group">
+        <label class="form-label">Deck Name</label>
+        <input type="text" class="form-input" id="deck-name" placeholder="My Flashcards" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn" onclick="closeDeckModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="createDeck()">Create</button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="modal" id="card-modal">
+    <div class="modal-content">
+      <div class="modal-title">Add Card</div>
+      <div class="form-group">
+        <label class="form-label">Front (Question)</label>
+        <textarea class="form-textarea" id="card-front" placeholder="What is..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Back (Answer)</label>
+        <textarea class="form-textarea" id="card-back" placeholder="The answer is..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" onclick="closeCardModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="addCard()">Add</button>
+      </div>
+    </div>
+  </div>
+  
+  <script src="https://clawdos.space/sdk/clawd-miniapp-sdk.js"></script>
+  <script>
+    try { if (window.clawd) clawd.ready(); } catch(e) {}
+    
+    let decks = JSON.parse(localStorage.getItem('flashcard-decks') || '{"Default": []}');
+    let currentDeck = Object.keys(decks)[0] || 'Default';
+    let currentIndex = 0;
+    let correctCount = 0;
+    let wrongCount = 0;
+    let isFlipped = false;
+    
+    const card = document.getElementById('card');
+    const cardFrontText = document.getElementById('card-front-text');
+    const cardBackText = document.getElementById('card-back-text');
+    const deckSelect = document.getElementById('deck-select');
+    
+    function save() {
+      localStorage.setItem('flashcard-decks', JSON.stringify(decks));
+    }
+    
+    function updateDeckSelect() {
+      deckSelect.innerHTML = Object.keys(decks).map(name => 
+        `<option value="${name}" ${name === currentDeck ? 'selected' : ''}>${name} (${decks[name].length})</option>`
+      ).join('');
+    }
+    
+    function showCard() {
+      const cards = decks[currentDeck] || [];
+      if (cards.length === 0) {
+        cardFrontText.textContent = 'No cards yet';
+        cardBackText.textContent = 'Add some cards!';
+      } else {
+        const c = cards[currentIndex % cards.length];
+        cardFrontText.textContent = c.front;
+        cardBackText.textContent = c.back;
+      }
+      card.classList.remove('flipped');
+      isFlipped = false;
+      updateProgress();
+    }
+    
+    function updateProgress() {
+      const cards = decks[currentDeck] || [];
+      document.getElementById('current').textContent = cards.length > 0 ? currentIndex + 1 : 0;
+      document.getElementById('total').textContent = cards.length;
+      document.getElementById('correct').textContent = correctCount;
+      document.getElementById('wrong').textContent = wrongCount;
+    }
+    
+    function flip() {
+      card.classList.toggle('flipped');
+      isFlipped = !isFlipped;
+    }
+    
+    function nextCard(wasCorrect) {
+      if (wasCorrect) correctCount++; else wrongCount++;
+      currentIndex = (currentIndex + 1) % Math.max(1, decks[currentDeck].length);
+      showCard();
+    }
+    
+    function createDeck() {
+      const name = document.getElementById('deck-name').value.trim();
+      if (name && !decks[name]) {
+        decks[name] = [];
+        currentDeck = name;
+        save();
+        updateDeckSelect();
+        showCard();
+      }
+      closeDeckModal();
+    }
+    
+    function addCard() {
+      const front = document.getElementById('card-front').value.trim();
+      const back = document.getElementById('card-back').value.trim();
+      if (front && back) {
+        decks[currentDeck].push({ front, back });
+        save();
+        updateDeckSelect();
+        showCard();
+      }
+      closeCardModal();
+    }
+    
+    function closeDeckModal() {
+      document.getElementById('deck-modal').classList.remove('show');
+      document.getElementById('deck-name').value = '';
+    }
+    
+    function closeCardModal() {
+      document.getElementById('card-modal').classList.remove('show');
+      document.getElementById('card-front').value = '';
+      document.getElementById('card-back').value = '';
+    }
+    
+    // Event listeners
+    document.getElementById('card-container').addEventListener('click', flip);
+    document.getElementById('flip-btn').addEventListener('click', flip);
+    document.getElementById('correct-btn').addEventListener('click', () => nextCard(true));
+    document.getElementById('wrong-btn').addEventListener('click', () => nextCard(false));
+    document.getElementById('new-deck-btn').addEventListener('click', () => 
+      document.getElementById('deck-modal').classList.add('show'));
+    document.getElementById('add-card-btn').addEventListener('click', () => 
+      document.getElementById('card-modal').classList.add('show'));
+    
+    deckSelect.addEventListener('change', () => {
+      currentDeck = deckSelect.value;
+      currentIndex = 0;
+      correctCount = 0;
+      wrongCount = 0;
+      showCard();
+    });
+    
+    // Close modals on backdrop click
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', e => {
+        if (e.target === modal) modal.classList.remove('show');
+      });
+    });
+    
+    // Init
+    if (!decks['Default']) decks['Default'] = [];
+    updateDeckSelect();
+    showCard();
+  </script>
+</body>
+</html>

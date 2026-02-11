@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Currency Converter</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .container {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 16px;
+      padding: 30px;
+      width: 100%;
+      max-width: 400px;
+    }
+    
+    .title {
+      font-size: 24px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .currency-box {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .currency-box:focus-within {
+      border-color: #58a6ff;
+    }
+    
+    .currency-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .currency-select {
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: #c9d1d9;
+      font-size: 14px;
+      cursor: pointer;
+      min-width: 100px;
+    }
+    
+    .currency-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #c9d1d9;
+      font-size: 28px;
+      font-weight: 600;
+      text-align: right;
+      outline: none;
+      font-variant-numeric: tabular-nums;
+    }
+    
+    .currency-input::placeholder {
+      color: #6e7681;
+    }
+    
+    .currency-name {
+      font-size: 12px;
+      color: #8b949e;
+      margin-top: 8px;
+    }
+    
+    .swap-btn {
+      display: flex;
+      justify-content: center;
+      margin: -8px 0;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .swap-btn button {
+      background: #21262d;
+      border: 2px solid #30363d;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      color: #8b949e;
+      font-size: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .swap-btn button:hover {
+      background: #30363d;
+      color: #c9d1d9;
+      transform: rotate(180deg);
+    }
+    
+    .rate-info {
+      text-align: center;
+      padding: 16px;
+      background: #0d1117;
+      border-radius: 12px;
+      margin-top: 20px;
+    }
+    
+    .rate {
+      font-size: 14px;
+      color: #8b949e;
+    }
+    
+    .rate-value {
+      color: #58a6ff;
+      font-weight: 600;
+    }
+    
+    .rate-update {
+      font-size: 11px;
+      color: #6e7681;
+      margin-top: 8px;
+    }
+    
+    .popular-currencies {
+      margin-top: 20px;
+    }
+    
+    .popular-title {
+      font-size: 12px;
+      color: #8b949e;
+      margin-bottom: 10px;
+    }
+    
+    .popular-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    
+    .popular-btn {
+      padding: 10px;
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      color: #c9d1d9;
+      font-size: 13px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    
+    .popular-btn:hover {
+      background: #30363d;
+    }
+    
+    .popular-btn.active {
+      background: #58a6ff;
+      color: #0d1117;
+      border-color: #58a6ff;
+    }
+    
+    .flag {
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+    
+    .loading {
+      text-align: center;
+      color: #8b949e;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="title">💱 Currency Converter</div>
+    
+    <div class="currency-box" id="from-box">
+      <div class="currency-row">
+        <select class="currency-select" id="from-currency"></select>
+        <input type="number" class="currency-input" id="from-amount" placeholder="0" value="1" />
+      </div>
+      <div class="currency-name" id="from-name">-</div>
+    </div>
+    
+    <div class="swap-btn">
+      <button id="swap">⇅</button>
+    </div>
+    
+    <div class="currency-box" id="to-box">
+      <div class="currency-row">
+        <select class="currency-select" id="to-currency"></select>
+        <input type="number" class="currency-input" id="to-amount" placeholder="0" readonly />
+      </div>
+      <div class="currency-name" id="to-name">-</div>
+    </div>
+    
+    <div class="rate-info">
+      <div class="rate" id="rate-display">Loading rates...</div>
+      <div class="rate-update" id="rate-update"></div>
+    </div>
+    
+    <div class="popular-currencies">
+      <div class="popular-title">Popular Currencies</div>
+      <div class="popular-grid" id="popular-grid"></div>
+    </div>
+  </div>
+  
+  <script src="https://clawdos.space/sdk/clawd-miniapp-sdk.js"></script>
+  <script>
+    if (window.clawd) {
+      clawd.ready();
+      clawd.setTitle('Currency');
+    }
+    
+    const currencies = {
+      USD: { name: 'US Dollar', flag: '🇺🇸' },
+      EUR: { name: 'Euro', flag: '🇪🇺' },
+      GBP: { name: 'British Pound', flag: '🇬🇧' },
+      JPY: { name: 'Japanese Yen', flag: '🇯🇵' },
+      CHF: { name: 'Swiss Franc', flag: '🇨🇭' },
+      CAD: { name: 'Canadian Dollar', flag: '🇨🇦' },
+      AUD: { name: 'Australian Dollar', flag: '🇦🇺' },
+      CNY: { name: 'Chinese Yuan', flag: '🇨🇳' },
+      INR: { name: 'Indian Rupee', flag: '🇮🇳' },
+      BRL: { name: 'Brazilian Real', flag: '🇧🇷' },
+      MXN: { name: 'Mexican Peso', flag: '🇲🇽' },
+      KRW: { name: 'South Korean Won', flag: '🇰🇷' },
+      SGD: { name: 'Singapore Dollar', flag: '🇸🇬' },
+      HKD: { name: 'Hong Kong Dollar', flag: '🇭🇰' },
+      NZD: { name: 'New Zealand Dollar', flag: '🇳🇿' },
+      SEK: { name: 'Swedish Krona', flag: '🇸🇪' }
+    };
+    
+    const popular = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'CNY'];
+    
+    let rates = {};
+    let fromCurrency = 'USD';
+    let toCurrency = 'EUR';
+    
+    const fromSelect = document.getElementById('from-currency');
+    const toSelect = document.getElementById('to-currency');
+    const fromAmount = document.getElementById('from-amount');
+    const toAmount = document.getElementById('to-amount');
+    const fromName = document.getElementById('from-name');
+    const toName = document.getElementById('to-name');
+    const rateDisplay = document.getElementById('rate-display');
+    const rateUpdate = document.getElementById('rate-update');
+    const popularGrid = document.getElementById('popular-grid');
+    
+    // Populate selects
+    function populateSelects() {
+      Object.entries(currencies).forEach(([code, data]) => {
+        const option1 = new Option(`${data.flag} ${code}`, code);
+        const option2 = new Option(`${data.flag} ${code}`, code);
+        fromSelect.add(option1);
+        toSelect.add(option2);
+      });
+      fromSelect.value = fromCurrency;
+      toSelect.value = toCurrency;
+    }
+    
+    // Populate popular buttons
+    function populatePopular() {
+      popularGrid.innerHTML = popular.map(code => `
+        <button class="popular-btn ${code === fromCurrency || code === toCurrency ? 'active' : ''}" data-code="${code}">
+          <div class="flag">${currencies[code].flag}</div>
+          ${code}
+        </button>
+      `).join('');
+      
+      popularGrid.querySelectorAll('.popular-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (btn.dataset.code !== fromCurrency) {
+            toCurrency = btn.dataset.code;
+            toSelect.value = toCurrency;
+            convert();
+            populatePopular();
+          }
+        });
+      });
+    }
+    
+    // Fetch rates from API
+    async function fetchRates() {
+      try {
+        const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+        const data = await res.json();
+        rates = data.rates;
+        rateUpdate.textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+        convert();
+      } catch (e) {
+        // Fallback rates
+        rates = {
+          USD: 1, EUR: 0.92, GBP: 0.79, JPY: 149.50, CHF: 0.88,
+          CAD: 1.36, AUD: 1.53, CNY: 7.24, INR: 83.12, BRL: 4.97,
+          MXN: 17.15, KRW: 1328, SGD: 1.34, HKD: 7.82, NZD: 1.64, SEK: 10.42
+        };
+        rateUpdate.textContent = 'Using cached rates';
+        convert();
+      }
+    }
+    
+    // Convert
+    function convert() {
+      const amount = parseFloat(fromAmount.value) || 0;
+      const fromRate = rates[fromCurrency] || 1;
+      const toRate = rates[toCurrency] || 1;
+      
+      const result = (amount / fromRate) * toRate;
+      toAmount.value = result.toFixed(2);
+      
+      // Update names
+      fromName.textContent = `${currencies[fromCurrency]?.flag || ''} ${currencies[fromCurrency]?.name || fromCurrency}`;
+      toName.textContent = `${currencies[toCurrency]?.flag || ''} ${currencies[toCurrency]?.name || toCurrency}`;
+      
+      // Update rate display
+      const rate = toRate / fromRate;
+      rateDisplay.innerHTML = `1 ${fromCurrency} = <span class="rate-value">${rate.toFixed(4)}</span> ${toCurrency}`;
+    }
+    
+    // Event listeners
+    fromAmount.addEventListener('input', convert);
+    
+    fromSelect.addEventListener('change', () => {
+      fromCurrency = fromSelect.value;
+      convert();
+      populatePopular();
+    });
+    
+    toSelect.addEventListener('change', () => {
+      toCurrency = toSelect.value;
+      convert();
+      populatePopular();
+    });
+    
+    document.getElementById('swap').addEventListener('click', () => {
+      [fromCurrency, toCurrency] = [toCurrency, fromCurrency];
+      fromSelect.value = fromCurrency;
+      toSelect.value = toCurrency;
+      fromAmount.value = toAmount.value;
+      convert();
+      populatePopular();
+    });
+    
+    // Initialize
+    populateSelects();
+    populatePopular();
+    fetchRates();
+  </script>
+</body>
+</html>

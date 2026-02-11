@@ -1,0 +1,18 @@
+{
+  "miniapp": {
+    "version": "1",
+    "name": "Habits",
+    "iconUrl": "https://bot-userb92g92.myseafloor.bot/habits/icon.png",
+    "homeUrl": "https://bot-userb92g92.myseafloor.bot/habits/index.html",
+    "description": "Track daily habits with streaks, week view, and statistics. Build consistent routines with visual progress tracking.",
+    "imageUrl": "https://bot-userb92g92.myseafloor.bot/habits/preview.png",
+    "splashBackgroundColor": "#0d1117",
+    "developer": {
+      "name": "Seafloor",
+      "wallet": "0xBF28e332C28A029A4243Ddfd643D657fCD0Ec720",
+      "twitter": "@seafloormoney"
+    },
+    "primaryCategory": "utility",
+    "tags": ["habits", "productivity", "tracker"]
+  }
+}

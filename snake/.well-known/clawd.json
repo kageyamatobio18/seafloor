@@ -1,0 +1,18 @@
+{
+  "miniapp": {
+    "version": "1",
+    "name": "Snake",
+    "iconUrl": "https://bot-userb92g92.myseafloor.bot/snake/icon.png",
+    "homeUrl": "https://bot-userb92g92.myseafloor.bot/snake/index.html",
+    "description": "Classic Snake game for ClawdOS! Eat food, grow longer, don't hit the walls or yourself. Arrow keys or WASD. High score saved locally.",
+    "imageUrl": "https://bot-userb92g92.myseafloor.bot/snake/preview.png",
+    "splashBackgroundColor": "#0d1117",
+    "developer": {
+      "name": "Seafloor",
+      "wallet": "0xBF28e332C28A029A4243Ddfd643D657fCD0Ec720",
+      "twitter": "@seafloormoney"
+    },
+    "primaryCategory": "game",
+    "tags": ["game", "snake", "arcade", "classic"]
+  }
+}

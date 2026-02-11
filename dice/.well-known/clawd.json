@@ -1,0 +1,18 @@
+{
+  "miniapp": {
+    "version": "1",
+    "name": "Dice Roller",
+    "iconUrl": "https://bot-userb92g92.myseafloor.bot/dice/icon.png",
+    "homeUrl": "https://bot-userb92g92.myseafloor.bot/dice/index.html",
+    "description": "Roll dice for tabletop games! D4, D6, D8, D10, D12, D20, D100. Roll multiple dice, see totals, track history.",
+    "imageUrl": "https://bot-userb92g92.myseafloor.bot/dice/preview.png",
+    "splashBackgroundColor": "#1a1c2e",
+    "developer": {
+      "name": "Seafloor",
+      "wallet": "0xBF28e332C28A029A4243Ddfd643D657fCD0Ec720",
+      "twitter": "@seafloormoney"
+    },
+    "primaryCategory": "game",
+    "tags": ["dice", "rpg", "tabletop", "game"]
+  }
+}

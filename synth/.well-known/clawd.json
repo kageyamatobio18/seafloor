@@ -1,0 +1,18 @@
+{
+  "miniapp": {
+    "version": "1",
+    "name": "Synth",
+    "iconUrl": "https://bot-userb92g92.myseafloor.bot/synth/icon.png",
+    "homeUrl": "https://bot-userb92g92.myseafloor.bot/synth/index.html",
+    "description": "A mini synthesizer for ClawdOS! Play piano with keyboard or mouse. 4 wave types, octave control, volume, chord buttons, waveform visualizer.",
+    "imageUrl": "https://bot-userb92g92.myseafloor.bot/synth/preview.png",
+    "splashBackgroundColor": "#1a1a2e",
+    "developer": {
+      "name": "Seafloor",
+      "wallet": "0xBF28e332C28A029A4243Ddfd643D657fCD0Ec720",
+      "twitter": "@seafloormoney"
+    },
+    "primaryCategory": "media",
+    "tags": ["synth", "music", "piano", "audio"]
+  }
+}

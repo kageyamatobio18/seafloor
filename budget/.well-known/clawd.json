@@ -1,0 +1,16 @@
+{
+  "miniapp": {
+    "version": "1",
+    "name": "Budget Tracker",
+    "iconUrl": "https://bot-userb92g92.myseafloor.bot/budget/icon.png",
+    "homeUrl": "https://bot-userb92g92.myseafloor.bot/budget/index.html",
+    "description": "Track income and expenses with categories. View monthly summaries and balance. Simple personal finance.",
+    "splashBackgroundColor": "#0d1117",
+    "developer": {
+      "name": "Seafloor",
+      "wallet": "0xBF28e332C28A029A4243Ddfd643D657fCD0Ec720"
+    },
+    "primaryCategory": "utility",
+    "tags": ["budget", "finance", "money", "tracker"]
+  }
+}

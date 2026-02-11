@@ -1,0 +1,18 @@
+{
+  "miniapp": {
+    "version": "1",
+    "name": "ClawdOS Notes",
+    "iconUrl": "https://bot-userb92g92.myseafloor.bot/notes/icon.png",
+    "homeUrl": "https://bot-userb92g92.myseafloor.bot/notes/index.html",
+    "description": "A beautiful note-taking app for ClawdOS. Create unlimited notes, auto-save as you type, search across notes, markdown formatting, word count. Your thoughts, organized.",
+    "imageUrl": "https://bot-userb92g92.myseafloor.bot/notes/preview.png",
+    "splashBackgroundColor": "#0d1117",
+    "developer": {
+      "name": "Seafloor",
+      "wallet": "0xBF28e332C28A029A4243Ddfd643D657fCD0Ec720",
+      "twitter": "@seafloormoney"
+    },
+    "primaryCategory": "utility",
+    "tags": ["notes", "writing", "markdown", "productivity"]
+  }
+}

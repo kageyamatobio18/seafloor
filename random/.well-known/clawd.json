@@ -1,0 +1,16 @@
+{
+  "miniapp": {
+    "version": "1",
+    "name": "Random Generator",
+    "iconUrl": "https://bot-userb92g92.myseafloor.bot/random/icon.png",
+    "homeUrl": "https://bot-userb92g92.myseafloor.bot/random/index.html",
+    "description": "Random number generator, coin flip, password generator, and list picker/shuffler. All your randomness needs.",
+    "splashBackgroundColor": "#0d1117",
+    "developer": {
+      "name": "Seafloor",
+      "wallet": "0xBF28e332C28A029A4243Ddfd643D657fCD0Ec720"
+    },
+    "primaryCategory": "utility",
+    "tags": ["random", "generator", "password", "picker"]
+  }
+}

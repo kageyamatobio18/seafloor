@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clock</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: 'SF Mono', 'JetBrains Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 30px;
+      background: #161b22;
+      padding: 4px;
+      border-radius: 12px;
+    }
+    
+    .tab {
+      padding: 10px 24px;
+      background: transparent;
+      border: none;
+      color: #8b949e;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    
+    .tab.active {
+      background: #21262d;
+      color: #c9d1d9;
+    }
+    
+    .tab:hover:not(.active) {
+      color: #c9d1d9;
+    }
+    
+    .panel {
+      display: none;
+      text-align: center;
+    }
+    
+    .panel.active {
+      display: block;
+    }
+    
+    /* Clock */
+    .clock-display {
+      font-size: 80px;
+      font-weight: 200;
+      letter-spacing: 4px;
+      margin-bottom: 10px;
+    }
+    
+    .clock-seconds {
+      font-size: 40px;
+      color: #58a6ff;
+    }
+    
+    .clock-date {
+      font-size: 18px;
+      color: #8b949e;
+      margin-bottom: 20px;
+    }
+    
+    .timezone {
+      font-size: 14px;
+      color: #6e7681;
+    }
+    
+    /* Timer */
+    .timer-display {
+      font-size: 72px;
+      font-weight: 200;
+      margin-bottom: 30px;
+      font-variant-numeric: tabular-nums;
+    }
+    
+    .timer-display.running {
+      color: #3fb950;
+    }
+    
+    .timer-display.paused {
+      color: #d29922;
+    }
+    
+    .timer-controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    
+    .timer-btn {
+      padding: 12px 28px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .timer-btn.start {
+      background: #238636;
+      color: white;
+    }
+    
+    .timer-btn.start:hover {
+      background: #2ea043;
+    }
+    
+    .timer-btn.pause {
+      background: #d29922;
+      color: white;
+    }
+    
+    .timer-btn.reset {
+      background: #21262d;
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+    }
+    
+    .timer-btn.reset:hover {
+      background: #30363d;
+    }
+    
+    .preset-btns {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .preset-btn {
+      padding: 8px 16px;
+      background: #21262d;
+      border: 1px solid #30363d;
+      color: #8b949e;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    
+    .preset-btn:hover {
+      background: #30363d;
+      color: #c9d1d9;
+    }
+    
+    /* Stopwatch */
+    .stopwatch-display {
+      font-size: 64px;
+      font-weight: 200;
+      margin-bottom: 10px;
+      font-variant-numeric: tabular-nums;
+    }
+    
+    .stopwatch-ms {
+      font-size: 36px;
+      color: #58a6ff;
+    }
+    
+    .laps {
+      margin-top: 30px;
+      max-height: 200px;
+      overflow-y: auto;
+      text-align: left;
+      padding: 0 20px;
+    }
+    
+    .lap {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: #161b22;
+      border-radius: 6px;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+    
+    .lap-num {
+      color: #8b949e;
+    }
+    
+    .lap-time {
+      color: #c9d1d9;
+      font-variant-numeric: tabular-nums;
+    }
+    
+    /* World clocks */
+    .world-clocks {
+      display: grid;
+      gap: 12px;
+      width: 100%;
+      max-width: 400px;
+    }
+    
+    .world-clock {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      background: #161b22;
+      border-radius: 12px;
+      border: 1px solid #30363d;
+    }
+    
+    .world-clock-city {
+      font-size: 16px;
+      color: #c9d1d9;
+    }
+    
+    .world-clock-offset {
+      font-size: 12px;
+      color: #8b949e;
+    }
+    
+    .world-clock-time {
+      font-size: 24px;
+      font-weight: 600;
+      color: #58a6ff;
+      font-variant-numeric: tabular-nums;
+    }
+  </style>
+</head>
+<body>
+  <div class="tabs">
+    <button class="tab active" data-panel="clock">🕐 Clock</button>
+    <button class="tab" data-panel="timer">⏱️ Timer</button>
+    <button class="tab" data-panel="stopwatch">⏲️ Stopwatch</button>
+    <button class="tab" data-panel="world">🌍 World</button>
+  </div>
+  
+  <!-- Clock Panel -->
+  <div class="panel active" id="clock">
+    <div class="clock-display" id="clock-time">00:00</div>
+    <div class="clock-date" id="clock-date">Loading...</div>
+    <div class="timezone" id="clock-tz"></div>
+  </div>
+  
+  <!-- Timer Panel -->
+  <div class="panel" id="timer">
+    <div class="timer-display" id="timer-display">00:00:00</div>
+    <div class="timer-controls">
+      <button class="timer-btn start" id="timer-start">Start</button>
+      <button class="timer-btn reset" id="timer-reset">Reset</button>
+    </div>
+    <div class="preset-btns">
+      <button class="preset-btn" data-time="60">1 min</button>
+      <button class="preset-btn" data-time="300">5 min</button>
+      <button class="preset-btn" data-time="600">10 min</button>
+      <button class="preset-btn" data-time="1500">25 min</button>
+      <button class="preset-btn" data-time="3600">1 hour</button>
+    </div>
+  </div>
+  
+  <!-- Stopwatch Panel -->
+  <div class="panel" id="stopwatch">
+    <div class="stopwatch-display">
+      <span id="sw-time">00:00</span><span class="stopwatch-ms" id="sw-ms">.00</span>
+    </div>
+    <div class="timer-controls">
+      <button class="timer-btn start" id="sw-start">Start</button>
+      <button class="timer-btn reset" id="sw-lap">Lap</button>
+      <button class="timer-btn reset" id="sw-reset">Reset</button>
+    </div>
+    <div class="laps" id="laps"></div>
+  </div>
+  
+  <!-- World Clocks Panel -->
+  <div class="panel" id="world">
+    <div class="world-clocks" id="world-clocks"></div>
+  </div>
+  
+  <script src="https://clawdos.space/sdk/clawd-miniapp-sdk.js"></script>
+  <script>
+    if (window.clawd) {
+      clawd.ready();
+      clawd.setTitle('Clock');
+    }
+    
+    // Tabs
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.onclick = () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.panel).classList.add('active');
+      };
+    });
+    
+    // Clock
+    const clockTime = document.getElementById('clock-time');
+    const clockDate = document.getElementById('clock-date');
+    const clockTz = document.getElementById('clock-tz');
+    
+    function updateClock() {
+      const now = new Date();
+      const h = now.getHours().toString().padStart(2, '0');
+      const m = now.getMinutes().toString().padStart(2, '0');
+      const s = now.getSeconds().toString().padStart(2, '0');
+      clockTime.innerHTML = `${h}:${m}<span class="clock-seconds">:${s}</span>`;
+      clockDate.textContent = now.toLocaleDateString('en-US', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      });
+      clockTz.textContent = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+    
+    // Timer
+    const timerDisplay = document.getElementById('timer-display');
+    const timerStart = document.getElementById('timer-start');
+    const timerReset = document.getElementById('timer-reset');
+    
+    let timerSeconds = 0;
+    let timerInterval = null;
+    let timerRunning = false;
+    
+    function formatTime(s) {
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const sec = s % 60;
+      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+    }
+    
+    function updateTimerDisplay() {
+      timerDisplay.textContent = formatTime(timerSeconds);
+      timerDisplay.className = 'timer-display' + (timerRunning ? ' running' : (timerSeconds > 0 ? ' paused' : ''));
+    }
+    
+    timerStart.onclick = () => {
+      if (timerRunning) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        timerStart.textContent = 'Start';
+        timerStart.className = 'timer-btn start';
+      } else if (timerSeconds > 0) {
+        timerRunning = true;
+        timerStart.textContent = 'Pause';
+        timerStart.className = 'timer-btn pause';
+        timerInterval = setInterval(() => {
+          timerSeconds--;
+          updateTimerDisplay();
+          if (timerSeconds <= 0) {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            timerStart.textContent = 'Start';
+            timerStart.className = 'timer-btn start';
+            if (window.clawd) clawd.showToast('Timer finished!');
+            // Play beep if possible
+            try {
+              const audio = new AudioContext();
+              const osc = audio.createOscillator();
+              osc.connect(audio.destination);
+              osc.frequency.value = 800;
+              osc.start();
+              setTimeout(() => osc.stop(), 200);
+            } catch (e) {}
+          }
+        }, 1000);
+      }
+      updateTimerDisplay();
+    };
+    
+    timerReset.onclick = () => {
+      clearInterval(timerInterval);
+      timerRunning = false;
+      timerSeconds = 0;
+      timerStart.textContent = 'Start';
+      timerStart.className = 'timer-btn start';
+      updateTimerDisplay();
+    };
+    
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.onclick = () => {
+        timerSeconds = parseInt(btn.dataset.time);
+        updateTimerDisplay();
+      };
+    });
+    
+    // Stopwatch
+    const swTime = document.getElementById('sw-time');
+    const swMs = document.getElementById('sw-ms');
+    const swStart = document.getElementById('sw-start');
+    const swLap = document.getElementById('sw-lap');
+    const swReset = document.getElementById('sw-reset');
+    const lapsDiv = document.getElementById('laps');
+    
+    let swStartTime = 0;
+    let swElapsed = 0;
+    let swInterval = null;
+    let swRunning = false;
+    let laps = [];
+    
+    function updateStopwatch() {
+      const total = swRunning ? swElapsed + (Date.now() - swStartTime) : swElapsed;
+      const ms = Math.floor((total % 1000) / 10);
+      const s = Math.floor(total / 1000);
+      const m = Math.floor(s / 60);
+      swTime.textContent = `${m.toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
+      swMs.textContent = `.${ms.toString().padStart(2, '0')}`;
+    }
+    
+    swStart.onclick = () => {
+      if (swRunning) {
+        swElapsed += Date.now() - swStartTime;
+        clearInterval(swInterval);
+        swRunning = false;
+        swStart.textContent = 'Start';
+        swStart.className = 'timer-btn start';
+      } else {
+        swStartTime = Date.now();
+        swRunning = true;
+        swStart.textContent = 'Stop';
+        swStart.className = 'timer-btn pause';
+        swInterval = setInterval(updateStopwatch, 10);
+      }
+    };
+    
+    swLap.onclick = () => {
+      if (!swRunning) return;
+      const total = swElapsed + (Date.now() - swStartTime);
+      laps.unshift(total);
+      renderLaps();
+    };
+    
+    swReset.onclick = () => {
+      clearInterval(swInterval);
+      swRunning = false;
+      swElapsed = 0;
+      swStartTime = 0;
+      laps = [];
+      swStart.textContent = 'Start';
+      swStart.className = 'timer-btn start';
+      updateStopwatch();
+      lapsDiv.innerHTML = '';
+    };
+    
+    function renderLaps() {
+      lapsDiv.innerHTML = laps.map((t, i) => {
+        const ms = Math.floor((t % 1000) / 10);
+        const s = Math.floor(t / 1000);
+        const m = Math.floor(s / 60);
+        return `<div class="lap">
+          <span class="lap-num">Lap ${laps.length - i}</span>
+          <span class="lap-time">${m.toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}</span>
+        </div>`;
+      }).join('');
+    }
+    
+    // World clocks
+    const worldClocks = document.getElementById('world-clocks');
+    const cities = [
+      { name: 'New York', tz: 'America/New_York' },
+      { name: 'London', tz: 'Europe/London' },
+      { name: 'Tokyo', tz: 'Asia/Tokyo' },
+      { name: 'Sydney', tz: 'Australia/Sydney' },
+      { name: 'Dubai', tz: 'Asia/Dubai' },
+      { name: 'Los Angeles', tz: 'America/Los_Angeles' }
+    ];
+    
+    function updateWorldClocks() {
+      worldClocks.innerHTML = cities.map(city => {
+        const now = new Date();
+        const time = now.toLocaleTimeString('en-US', { 
+          timeZone: city.tz, 
+          hour: '2-digit', 
+          minute: '2-digit',
+          hour12: false 
+        });
+        const offset = new Date().toLocaleTimeString('en-US', { 
+          timeZone: city.tz, 
+          timeZoneName: 'short' 
+        }).split(' ').pop();
+        return `<div class="world-clock">
+          <div>
+            <div class="world-clock-city">${city.name}</div>
+            <div class="world-clock-offset">${offset}</div>
+          </div>
+          <div class="world-clock-time">${time}</div>
+        </div>`;
+      }).join('');
+    }
+    updateWorldClocks();
+    setInterval(updateWorldClocks, 1000);
+  </script>
+</body>
+</html>

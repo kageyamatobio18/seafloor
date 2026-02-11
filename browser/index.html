@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Web Browser</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    .toolbar {
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    
+    .nav-btn {
+      background: #21262d;
+      border: 1px solid #30363d;
+      color: #8b949e;
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: all 0.15s;
+    }
+    
+    .nav-btn:hover:not(:disabled) {
+      background: #30363d;
+      color: #c9d1d9;
+    }
+    
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    
+    .url-bar {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    .url-bar:focus-within {
+      border-color: #58a6ff;
+    }
+    
+    .url-prefix {
+      padding: 0 10px;
+      font-size: 14px;
+    }
+    
+    .url-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #c9d1d9;
+      font-size: 14px;
+      padding: 10px 10px 10px 0;
+      outline: none;
+    }
+    
+    .go-btn {
+      background: #238636;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .go-btn:hover {
+      background: #2ea043;
+    }
+    
+    .tabs-bar {
+      background: #0d1117;
+      border-bottom: 1px solid #30363d;
+      display: flex;
+      align-items: center;
+      padding: 6px 8px;
+      gap: 4px;
+      flex-shrink: 0;
+      overflow-x: auto;
+    }
+    
+    .tab {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px 6px 0 0;
+      padding: 8px 12px;
+      font-size: 13px;
+      color: #8b949e;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      max-width: 200px;
+      min-width: 120px;
+      border-bottom: none;
+    }
+    
+    .tab:hover { background: #21262d; }
+    
+    .tab.active {
+      background: #21262d;
+      color: #c9d1d9;
+      border-color: #58a6ff;
+    }
+    
+    .tab-title {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .tab-close {
+      opacity: 0.6;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    
+    .tab-close:hover {
+      opacity: 1;
+      color: #f85149;
+    }
+    
+    .new-tab-btn {
+      background: transparent;
+      border: 1px dashed #30363d;
+      color: #8b949e;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 18px;
+    }
+    
+    .new-tab-btn:hover {
+      background: #21262d;
+      border-style: solid;
+    }
+    
+    .browser-content {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: #0d1117;
+    }
+    
+    .browser-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: white;
+    }
+    
+    .start-page {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #0d1117;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+    
+    .start-page.hidden { display: none; }
+    
+    .start-logo { font-size: 72px; margin-bottom: 16px; }
+    .start-title { font-size: 28px; color: #58a6ff; margin-bottom: 8px; }
+    .start-subtitle { color: #8b949e; margin-bottom: 40px; }
+    
+    .quick-links {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      max-width: 500px;
+    }
+    
+    .quick-link {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .quick-link:hover {
+      background: #21262d;
+      border-color: #58a6ff;
+      transform: translateY(-2px);
+    }
+    
+    .quick-link-icon { font-size: 32px; margin-bottom: 8px; }
+    .quick-link-name { font-size: 13px; color: #c9d1d9; }
+    
+    .loading-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #0d1117;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+    
+    .loading-overlay.hidden { display: none; }
+    
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #30363d;
+      border-top-color: #58a6ff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 16px;
+    }
+    
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    .notice-page {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #0d1117;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      text-align: center;
+    }
+    
+    .notice-page.hidden { display: none; }
+    .notice-icon { font-size: 64px; margin-bottom: 20px; }
+    .notice-title { font-size: 24px; color: #58a6ff; margin-bottom: 12px; }
+    .notice-text { color: #8b949e; max-width: 400px; margin-bottom: 24px; line-height: 1.6; }
+    
+    .notice-btn {
+      background: #238636;
+      border: none;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 4px;
+    }
+    
+    .notice-btn:hover { background: #2ea043; }
+    .notice-btn.secondary {
+      background: #21262d;
+      border: 1px solid #30363d;
+    }
+    .notice-btn.secondary:hover { background: #30363d; }
+    
+    .status-bar {
+      background: #161b22;
+      border-top: 1px solid #30363d;
+      padding: 6px 12px;
+      font-size: 12px;
+      color: #8b949e;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .bookmarks-menu {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 8px 0;
+      min-width: 220px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      z-index: 100;
+      display: none;
+    }
+    
+    .bookmarks-menu.show { display: block; }
+    
+    .bookmark-item {
+      padding: 10px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+    }
+    
+    .bookmark-item:hover { background: #21262d; }
+    
+    .toolbar-group {
+      position: relative;
+      display: flex;
+      gap: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <button class="nav-btn" id="btn-back" title="Back" disabled>←</button>
+    <button class="nav-btn" id="btn-forward" title="Forward" disabled>→</button>
+    <button class="nav-btn" id="btn-refresh" title="Refresh">↻</button>
+    <button class="nav-btn" id="btn-home" title="Home">🏠</button>
+    
+    <div class="url-bar">
+      <span class="url-prefix">🔒</span>
+      <input type="text" class="url-input" id="url-input" placeholder="Enter URL or search..." autocomplete="off" />
+      <button class="go-btn" id="btn-go">Go</button>
+    </div>
+    
+    <div class="toolbar-group">
+      <button class="nav-btn" id="btn-bookmarks" title="Bookmarks">⭐</button>
+      <div class="bookmarks-menu" id="bookmarks-menu">
+        <div class="bookmark-item" data-url="https://google.com">🔍 Google</div>
+        <div class="bookmark-item" data-url="https://github.com">🐙 GitHub</div>
+        <div class="bookmark-item" data-url="https://wikipedia.org">📚 Wikipedia</div>
+        <div class="bookmark-item" data-url="https://news.ycombinator.com">🧡 Hacker News</div>
+        <div class="bookmark-item" data-url="https://reddit.com">🤖 Reddit</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="tabs-bar" id="tabs-bar">
+    <button class="new-tab-btn" id="btn-new-tab" title="New Tab">+</button>
+  </div>
+  
+  <div class="browser-content" id="content">
+    <div class="start-page" id="start-page">
+      <div class="start-logo">🌐</div>
+      <h1 class="start-title">ClawdOS Browser</h1>
+      <p class="start-subtitle">Enter a URL above or click a quick link</p>
+      <div class="quick-links" id="quick-links">
+        <div class="quick-link" data-url="https://google.com">
+          <div class="quick-link-icon">🔍</div>
+          <div class="quick-link-name">Google</div>
+        </div>
+        <div class="quick-link" data-url="https://github.com">
+          <div class="quick-link-icon">🐙</div>
+          <div class="quick-link-name">GitHub</div>
+        </div>
+        <div class="quick-link" data-url="https://wikipedia.org">
+          <div class="quick-link-icon">📚</div>
+          <div class="quick-link-name">Wikipedia</div>
+        </div>
+        <div class="quick-link" data-url="https://news.ycombinator.com">
+          <div class="quick-link-icon">🧡</div>
+          <div class="quick-link-name">Hacker News</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="loading-overlay hidden" id="loading">
+      <div class="spinner"></div>
+      <div style="color: #8b949e;">Loading...</div>
+    </div>
+    
+    <div class="notice-page hidden" id="notice-page">
+      <div class="notice-icon">ℹ️</div>
+      <h2 class="notice-title">Opening External Site</h2>
+      <p class="notice-text" id="notice-text">
+        Most websites block being embedded in iframes for security. Click below to open in a new tab.
+      </p>
+      <div>
+        <button class="notice-btn" id="btn-open-external">Open in New Tab</button>
+        <button class="notice-btn secondary" id="btn-try-embed">Try Embed Anyway</button>
+      </div>
+    </div>
+    
+    <iframe class="browser-frame" id="frame" style="display: none;" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+  </div>
+  
+  <div class="status-bar">
+    <span id="status">Ready</span>
+    <span id="status-url"></span>
+  </div>
+  
+  <script src="https://clawdos.space/sdk/clawd-miniapp-sdk.js"></script>
+  <script>
+    // Init ClawdOS - wrapped in try-catch for safety
+    try {
+      if (window.clawd) clawd.ready();
+    } catch(e) { console.log('ClawdOS SDK not available'); }
+    
+    // State
+    let tabs = [{ id: 0, url: '', title: 'New Tab', history: [], histIdx: -1 }];
+    let activeTab = 0;
+    let tabIdCounter = 1;
+    let pendingUrl = '';
+    
+    // DOM elements
+    const $ = id => document.getElementById(id);
+    const urlInput = $('url-input');
+    const frame = $('frame');
+    const startPage = $('start-page');
+    const loadingEl = $('loading');
+    const noticePage = $('notice-page');
+    const tabsBar = $('tabs-bar');
+    const statusEl = $('status');
+    const statusUrlEl = $('status-url');
+    const bookmarksMenu = $('bookmarks-menu');
+    
+    // Get current tab
+    const getTab = () => tabs.find(t => t.id === activeTab);
+    
+    // Normalize URL
+    function normalizeUrl(input) {
+      input = input.trim();
+      if (!input) return '';
+      if (!input.includes('.') && !input.startsWith('http')) {
+        return 'https://www.google.com/search?igu=1&q=' + encodeURIComponent(input);
+      }
+      if (!input.startsWith('http')) input = 'https://' + input;
+      return input;
+    }
+    
+    // Sites that allow embedding
+    const embeddableSites = [
+      'wikipedia.org', 'google.com/search', 'duckduckgo.com', 'bing.com',
+      'archive.org', 'codepen.io', 'jsfiddle.net', 'codesandbox.io'
+    ];
+    
+    function isEmbeddable(url) {
+      try {
+        const host = new URL(url).hostname;
+        return embeddableSites.some(s => url.includes(s));
+      } catch { return false; }
+    }
+    
+    // Render tabs
+    function renderTabs() {
+      const newTabBtn = $('btn-new-tab');
+      tabsBar.querySelectorAll('.tab').forEach(t => t.remove());
+      
+      tabs.forEach(tab => {
+        const el = document.createElement('div');
+        el.className = 'tab' + (tab.id === activeTab ? ' active' : '');
+        el.innerHTML = `<span class="tab-title">${tab.title || 'New Tab'}</span><span class="tab-close">×</span>`;
+        
+        el.querySelector('.tab-title').addEventListener('click', () => switchTab(tab.id));
+        el.querySelector('.tab-close').addEventListener('click', (e) => {
+          e.stopPropagation();
+          closeTab(tab.id);
+        });
+        
+        tabsBar.insertBefore(el, newTabBtn);
+      });
+    }
+    
+    // Switch tab
+    function switchTab(id) {
+      activeTab = id;
+      const tab = getTab();
+      urlInput.value = tab.url || '';
+      
+      if (tab.url) {
+        showNotice(tab.url);
+      } else {
+        showStart();
+      }
+      
+      renderTabs();
+      updateNavBtns();
+    }
+    
+    // Close tab
+    function closeTab(id) {
+      if (tabs.length === 1) {
+        tabs[0] = { id: 0, url: '', title: 'New Tab', history: [], histIdx: -1 };
+        showStart();
+        renderTabs();
+        return;
+      }
+      
+      const idx = tabs.findIndex(t => t.id === id);
+      tabs.splice(idx, 1);
+      
+      if (activeTab === id) {
+        activeTab = tabs[Math.min(idx, tabs.length - 1)].id;
+        switchTab(activeTab);
+      }
+      
+      renderTabs();
+    }
+    
+    // New tab
+    function newTab() {
+      const tab = { id: tabIdCounter++, url: '', title: 'New Tab', history: [], histIdx: -1 };
+      tabs.push(tab);
+      switchTab(tab.id);
+      urlInput.focus();
+    }
+    
+    // Navigate
+    function navigate(url) {
+      url = normalizeUrl(url);
+      if (!url) return;
+      
+      pendingUrl = url;
+      const tab = getTab();
+      tab.url = url;
+      tab.title = new URL(url).hostname;
+      
+      // Update history
+      if (tab.histIdx < tab.history.length - 1) {
+        tab.history = tab.history.slice(0, tab.histIdx + 1);
+      }
+      tab.history.push(url);
+      tab.histIdx = tab.history.length - 1;
+      
+      urlInput.value = url;
+      renderTabs();
+      updateNavBtns();
+      
+      // Show notice page (most sites block embedding)
+      showNotice(url);
+    }
+    
+    // Show start page
+    function showStart() {
+      startPage.classList.remove('hidden');
+      loadingEl.classList.add('hidden');
+      noticePage.classList.add('hidden');
+      frame.style.display = 'none';
+      statusEl.textContent = 'Ready';
+      statusUrlEl.textContent = '';
+      if (window.clawd) clawd.setTitle('Browser');
+    }
+    
+    // Show notice page
+    function showNotice(url) {
+      pendingUrl = url;
+      startPage.classList.add('hidden');
+      loadingEl.classList.add('hidden');
+      noticePage.classList.remove('hidden');
+      frame.style.display = 'none';
+      statusEl.textContent = 'Ready';
+      statusUrlEl.textContent = url;
+      $('notice-text').textContent = `"${new URL(url).hostname}" will open in a new tab. Most sites block iframe embedding for security.`;
+    }
+    
+    // Try to embed
+    function tryEmbed(url) {
+      startPage.classList.add('hidden');
+      noticePage.classList.add('hidden');
+      loadingEl.classList.remove('hidden');
+      frame.style.display = 'none';
+      statusEl.textContent = 'Loading...';
+      statusUrlEl.textContent = url;
+      
+      frame.onload = () => {
+        loadingEl.classList.add('hidden');
+        frame.style.display = 'block';
+        statusEl.textContent = 'Loaded';
+      };
+      
+      frame.onerror = () => {
+        showNotice(url);
+      };
+      
+      frame.src = url;
+      
+      // Timeout fallback
+      setTimeout(() => {
+        if (loadingEl.classList.contains('hidden') === false) {
+          showNotice(url);
+        }
+      }, 8000);
+    }
+    
+    // Update nav buttons
+    function updateNavBtns() {
+      const tab = getTab();
+      $('btn-back').disabled = tab.histIdx <= 0;
+      $('btn-forward').disabled = tab.histIdx >= tab.history.length - 1;
+    }
+    
+    // Event listeners
+    $('btn-go').addEventListener('click', () => navigate(urlInput.value));
+    urlInput.addEventListener('keypress', e => { if (e.key === 'Enter') navigate(urlInput.value); });
+    
+    $('btn-back').addEventListener('click', () => {
+      const tab = getTab();
+      if (tab.histIdx > 0) {
+        tab.histIdx--;
+        tab.url = tab.history[tab.histIdx];
+        urlInput.value = tab.url;
+        showNotice(tab.url);
+        updateNavBtns();
+      }
+    });
+    
+    $('btn-forward').addEventListener('click', () => {
+      const tab = getTab();
+      if (tab.histIdx < tab.history.length - 1) {
+        tab.histIdx++;
+        tab.url = tab.history[tab.histIdx];
+        urlInput.value = tab.url;
+        showNotice(tab.url);
+        updateNavBtns();
+      }
+    });
+    
+    $('btn-refresh').addEventListener('click', () => {
+      const tab = getTab();
+      if (tab.url) {
+        if (frame.style.display !== 'none') {
+          frame.src = frame.src;
+        } else {
+          showNotice(tab.url);
+        }
+      }
+    });
+    
+    $('btn-home').addEventListener('click', () => {
+      const tab = getTab();
+      tab.url = '';
+      tab.title = 'New Tab';
+      urlInput.value = '';
+      showStart();
+      renderTabs();
+    });
+    
+    $('btn-new-tab').addEventListener('click', newTab);
+    
+    $('btn-bookmarks').addEventListener('click', (e) => {
+      e.stopPropagation();
+      bookmarksMenu.classList.toggle('show');
+    });
+    
+    document.addEventListener('click', () => bookmarksMenu.classList.remove('show'));
+    
+    document.querySelectorAll('.bookmark-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        navigate(item.dataset.url);
+        bookmarksMenu.classList.remove('show');
+      });
+    });
+    
+    $('quick-links').querySelectorAll('.quick-link').forEach(link => {
+      link.addEventListener('click', () => navigate(link.dataset.url));
+    });
+    
+    $('btn-open-external').addEventListener('click', () => {
+      if (pendingUrl) {
+        window.open(pendingUrl, '_blank');
+      }
+    });
+    
+    $('btn-try-embed').addEventListener('click', () => {
+      if (pendingUrl) tryEmbed(pendingUrl);
+    });
+    
+    // Init
+    renderTabs();
+    showStart();
+  </script>
+</body>
+</html>

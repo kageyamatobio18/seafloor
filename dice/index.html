@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dice Roller</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      background: linear-gradient(135deg, #1a1c2e 0%, #0d1117 100%);
+      color: #c9d1d9;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .container {
+      text-align: center;
+      width: 100%;
+      max-width: 500px;
+    }
+    
+    .title {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 30px;
+    }
+    
+    .dice-area {
+      min-height: 200px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 30px;
+      padding: 20px;
+    }
+    
+    .die {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(145deg, #ffffff, #e6e6e6);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      font-weight: 700;
+      color: #1a1a1a;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s;
+      position: relative;
+    }
+    
+    .die.rolling {
+      animation: roll 0.5s ease-out;
+    }
+    
+    @keyframes roll {
+      0%, 100% { transform: rotate(0deg) scale(1); }
+      25% { transform: rotate(-15deg) scale(1.1); }
+      50% { transform: rotate(15deg) scale(1.1); }
+      75% { transform: rotate(-10deg) scale(1.05); }
+    }
+    
+    .die.d4 { border-radius: 8px; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); height: 70px; }
+    .die.d6 { border-radius: 12px; }
+    .die.d8 { border-radius: 8px; clip-path: polygon(50% 0%, 100% 35%, 100% 65%, 50% 100%, 0% 65%, 0% 35%); }
+    .die.d10 { border-radius: 8px; }
+    .die.d12 { border-radius: 30px; }
+    .die.d20 { border-radius: 8px; background: linear-gradient(145deg, #58a6ff, #388bfd); color: white; }
+    .die.d100 { font-size: 24px; background: linear-gradient(145deg, #a371f7, #8957e5); color: white; }
+    
+    .die-type {
+      position: absolute;
+      bottom: -20px;
+      font-size: 10px;
+      color: #8b949e;
+    }
+    
+    .total {
+      font-size: 48px;
+      font-weight: 700;
+      color: #58a6ff;
+      margin-bottom: 30px;
+    }
+    
+    .total-label {
+      font-size: 14px;
+      color: #8b949e;
+      margin-top: 4px;
+    }
+    
+    .dice-selector {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    
+    .dice-btn {
+      padding: 12px 20px;
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      color: #c9d1d9;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .dice-btn:hover {
+      background: #30363d;
+      transform: translateY(-2px);
+    }
+    
+    .dice-btn.active {
+      background: #58a6ff;
+      color: #0d1117;
+      border-color: #58a6ff;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    
+    .roll-btn {
+      padding: 16px 48px;
+      background: linear-gradient(135deg, #238636, #2ea043);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(35, 134, 54, 0.4);
+      transition: all 0.2s;
+    }
+    
+    .roll-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(35, 134, 54, 0.5);
+    }
+    
+    .roll-btn:active {
+      transform: translateY(0);
+    }
+    
+    .clear-btn {
+      padding: 16px 24px;
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      color: #c9d1d9;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    
+    .clear-btn:hover {
+      background: #30363d;
+    }
+    
+    .history {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 16px;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    
+    .history-title {
+      font-size: 12px;
+      color: #8b949e;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+    
+    .history-item {
+      font-size: 13px;
+      color: #6e7681;
+      padding: 4px 0;
+      border-bottom: 1px solid #21262d;
+    }
+    
+    .history-item:last-child {
+      border-bottom: none;
+    }
+    
+    .history-result {
+      color: #58a6ff;
+      font-weight: 600;
+    }
+    
+    .count-control {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    
+    .count-btn {
+      width: 36px;
+      height: 36px;
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      color: #c9d1d9;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    
+    .count-btn:hover {
+      background: #30363d;
+    }
+    
+    .count-value {
+      font-size: 24px;
+      font-weight: 600;
+      min-width: 40px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="title">🎲 Dice Roller</div>
+    
+    <div class="dice-selector">
+      <button class="dice-btn" data-sides="4">D4</button>
+      <button class="dice-btn active" data-sides="6">D6</button>
+      <button class="dice-btn" data-sides="8">D8</button>
+      <button class="dice-btn" data-sides="10">D10</button>
+      <button class="dice-btn" data-sides="12">D12</button>
+      <button class="dice-btn" data-sides="20">D20</button>
+      <button class="dice-btn" data-sides="100">D100</button>
+    </div>
+    
+    <div class="count-control">
+      <button class="count-btn" id="minus">−</button>
+      <span class="count-value" id="count">1</span>
+      <button class="count-btn" id="plus">+</button>
+    </div>
+    
+    <div class="dice-area" id="dice-area">
+      <div class="die d6">?</div>
+    </div>
+    
+    <div class="total">
+      <span id="total">-</span>
+      <div class="total-label">Total</div>
+    </div>
+    
+    <div class="controls">
+      <button class="roll-btn" id="roll-btn">🎲 Roll!</button>
+      <button class="clear-btn" id="clear-btn">Clear</button>
+    </div>
+    
+    <div class="history">
+      <div class="history-title">History</div>
+      <div id="history-list"></div>
+    </div>
+  </div>
+  
+  <script src="https://clawdos.space/sdk/clawd-miniapp-sdk.js"></script>
+  <script>
+    if (window.clawd) {
+      clawd.ready();
+      clawd.setTitle('Dice');
+    }
+    
+    let sides = 6;
+    let count = 1;
+    let history = [];
+    
+    const diceArea = document.getElementById('dice-area');
+    const totalEl = document.getElementById('total');
+    const countEl = document.getElementById('count');
+    const historyList = document.getElementById('history-list');
+    
+    function updateDiceArea() {
+      diceArea.innerHTML = '';
+      for (let i = 0; i < count; i++) {
+        const die = document.createElement('div');
+        die.className = `die d${sides}`;
+        die.textContent = '?';
+        die.innerHTML += `<span class="die-type">d${sides}</span>`;
+        diceArea.appendChild(die);
+      }
+    }
+    
+    function roll() {
+      const dice = diceArea.querySelectorAll('.die');
+      const results = [];
+      
+      dice.forEach((die, i) => {
+        die.classList.add('rolling');
+        
+        // Animate through random numbers
+        let animCount = 0;
+        const animInterval = setInterval(() => {
+          die.innerHTML = Math.floor(Math.random() * sides) + 1 + `<span class="die-type">d${sides}</span>`;
+          animCount++;
+          if (animCount > 8) {
+            clearInterval(animInterval);
+            const result = Math.floor(Math.random() * sides) + 1;
+            results.push(result);
+            die.innerHTML = result + `<span class="die-type">d${sides}</span>`;
+            die.classList.remove('rolling');
+            
+            // Update total when all dice are done
+            if (results.length === count) {
+              const total = results.reduce((a, b) => a + b, 0);
+              totalEl.textContent = total;
+              
+              // Add to history
+              const historyEntry = `${count}d${sides}: [${results.join(', ')}] = ${total}`;
+              history.unshift(historyEntry);
+              if (history.length > 10) history.pop();
+              renderHistory();
+            }
+          }
+        }, 50);
+      });
+    }
+    
+    function renderHistory() {
+      historyList.innerHTML = history.map(item => {
+        const match = item.match(/= (\d+)$/);
+        const result = match ? match[1] : '';
+        const rest = item.replace(/= \d+$/, '');
+        return `<div class="history-item">${rest}<span class="history-result">= ${result}</span></div>`;
+      }).join('');
+    }
+    
+    // Event listeners
+    document.querySelectorAll('.dice-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.dice-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        sides = parseInt(btn.dataset.sides);
+        updateDiceArea();
+      });
+    });
+    
+    document.getElementById('minus').addEventListener('click', () => {
+      if (count > 1) {
+        count--;
+        countEl.textContent = count;
+        updateDiceArea();
+      }
+    });
+    
+    document.getElementById('plus').addEventListener('click', () => {
+      if (count < 10) {
+        count++;
+        countEl.textContent = count;
+        updateDiceArea();
+      }
+    });
+    
+    document.getElementById('roll-btn').addEventListener('click', roll);
+    
+    document.getElementById('clear-btn').addEventListener('click', () => {
+      totalEl.textContent = '-';
+      history = [];
+      renderHistory();
+      updateDiceArea();
+    });
+    
+    // Keyboard shortcut
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' || e.key === 'Enter') {
+        e.preventDefault();
+        roll();
+      }
+    });
+    
+    updateDiceArea();
+  </script>
+</body>
+</html>

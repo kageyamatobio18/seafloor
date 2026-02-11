@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Terminal</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    /* Title Bar */
+    .title-bar {
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    
+    .title-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .terminal-icon {
+      font-size: 18px;
+    }
+    
+    .title-text {
+      font-size: 13px;
+      color: #8b949e;
+    }
+    
+    .title-bar-right {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .title-btn {
+      background: #21262d;
+      border: 1px solid #30363d;
+      color: #8b949e;
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .title-btn:hover {
+      background: #30363d;
+      color: #c9d1d9;
+    }
+    
+    /* Terminal Container */
+    .terminal-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    
+    /* Output lines */
+    .output-line {
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    
+    .output-line.command {
+      color: #58a6ff;
+    }
+    
+    .output-line.error {
+      color: #f85149;
+    }
+    
+    .output-line.success {
+      color: #3fb950;
+    }
+    
+    .output-line.info {
+      color: #8b949e;
+    }
+    
+    .output-line.warning {
+      color: #d29922;
+    }
+    
+    /* Input line */
+    .input-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    
+    .prompt {
+      color: #3fb950;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    
+    .prompt-user {
+      color: #58a6ff;
+    }
+    
+    .prompt-at {
+      color: #8b949e;
+    }
+    
+    .prompt-host {
+      color: #a371f7;
+    }
+    
+    .prompt-path {
+      color: #58a6ff;
+    }
+    
+    .prompt-symbol {
+      color: #3fb950;
+    }
+    
+    .input-field {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #c9d1d9;
+      font-family: inherit;
+      font-size: inherit;
+      outline: none;
+      caret-color: #3fb950;
+    }
+    
+    /* Cursor blink */
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 16px;
+      background: #3fb950;
+      animation: blink 1s step-end infinite;
+    }
+    
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+    
+    /* Welcome banner */
+    .welcome-banner {
+      color: #8b949e;
+      margin-bottom: 16px;
+    }
+    
+    .welcome-banner .logo {
+      color: #58a6ff;
+      font-weight: bold;
+    }
+    
+    /* Directory listing */
+    .file-entry {
+      display: inline-block;
+      min-width: 150px;
+      padding: 2px 0;
+    }
+    
+    .file-entry.dir {
+      color: #58a6ff;
+      font-weight: 600;
+    }
+    
+    .file-entry.exec {
+      color: #3fb950;
+    }
+    
+    .file-entry.link {
+      color: #a371f7;
+    }
+    
+    /* Table formatting */
+    .table-row {
+      display: flex;
+      gap: 16px;
+    }
+    
+    .table-cell {
+      min-width: 100px;
+    }
+    
+    /* Autocomplete dropdown */
+    .autocomplete {
+      position: absolute;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 4px 0;
+      max-height: 200px;
+      overflow-y: auto;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      z-index: 100;
+      display: none;
+    }
+    
+    .autocomplete.show {
+      display: block;
+    }
+    
+    .autocomplete-item {
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    
+    .autocomplete-item:hover,
+    .autocomplete-item.selected {
+      background: #21262d;
+    }
+    
+    /* Status bar */
+    .status-bar {
+      background: #161b22;
+      border-top: 1px solid #30363d;
+      padding: 4px 12px;
+      font-size: 11px;
+      color: #8b949e;
+      display: flex;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- Title Bar -->
+  <div class="title-bar">
+    <div class="title-bar-left">
+      <span class="terminal-icon">💻</span>
+      <span class="title-text">Terminal — ClawdOS</span>
+    </div>
+    <div class="title-bar-right">
+      <button class="title-btn" id="clear-btn" title="Clear">🗑️</button>
+      <button class="title-btn" id="copy-btn" title="Copy output">📋</button>
+    </div>
+  </div>
+  
+  <!-- Terminal -->
+  <div class="terminal-container" id="terminal">
+    <div class="welcome-banner">
+      <div class="logo">╭───────────────────────────────────────╮</div>
+      <div class="logo">│     ClawdOS Terminal v1.0             │</div>
+      <div class="logo">│     A shell for AI agents 🦞          │</div>
+      <div class="logo">╰───────────────────────────────────────╯</div>
+      <div></div>
+      <div>Type 'help' for available commands.</div>
+      <div>Connected to ClawdOS.</div>
+      <div></div>
+    </div>
+    
+    <div id="output"></div>
+    
+    <div class="input-line" id="input-line">
+      <span class="prompt">
+        <span class="prompt-user">agent</span><span class="prompt-at">@</span><span class="prompt-host">clawdos</span>:<span class="prompt-path">~</span><span class="prompt-symbol">$</span>
+      </span>
+      <input type="text" class="input-field" id="input" autocomplete="off" spellcheck="false" autofocus />
+    </div>
+  </div>
+  
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span id="status-left">Ready</span>
+    <span id="status-right">~</span>
+  </div>
+  
+  <!-- ClawdOS SDK -->
+  <script src="https://clawdos.space/sdk/clawd-miniapp-sdk.js"></script>
+  <script>
+    // Initialize ClawdOS SDK
+    if (window.clawd) {
+      clawd.ready();
+    }
+    
+    // State
+    const state = {
+      cwd: '~',
+      history: [],
+      historyIndex: -1,
+      user: 'agent',
+      host: 'clawdos',
+      env: {
+        HOME: '/home/agent',
+        USER: 'agent',
+        PATH: '/usr/bin:/bin',
+        SHELL: '/bin/bash',
+        TERM: 'xterm-256color'
+      },
+      fs: {
+        '~': {
+          type: 'dir',
+          children: {
+            'Documents': { type: 'dir', children: {} },
+            'Downloads': { type: 'dir', children: {} },
+            'Projects': { type: 'dir', children: {
+              'hello.py': { type: 'file', content: 'print("Hello, ClawdOS!")' },
+              'README.md': { type: 'file', content: '# My Project\n\nWelcome to my project!' }
+            }},
+            '.bashrc': { type: 'file', content: '# ~/.bashrc\nexport PS1="\\u@\\h:\\w\\$ "' },
+            '.profile': { type: 'file', content: '# ~/.profile\necho "Welcome!"' },
+            'notes.txt': { type: 'file', content: 'Remember to check the ClawdOS Store!' }
+          }
+        }
+      }
+    };
+    
+    // DOM elements
+    const terminal = document.getElementById('terminal');
+    const output = document.getElementById('output');
+    const input = document.getElementById('input');
+    const statusLeft = document.getElementById('status-left');
+    const statusRight = document.getElementById('status-right');
+    const clearBtn = document.getElementById('clear-btn');
+    const copyBtn = document.getElementById('copy-btn');
+    
+    // Get wallet info
+    if (window.clawd) {
+      clawd.getContext().then(ctx => {
+        if (ctx.user.wallet) {
+          state.env.WALLET = ctx.user.wallet;
+          state.user = ctx.user.wallet.slice(0, 6);
+        }
+        if (ctx.user.name) {
+          state.user = ctx.user.name;
+        }
+        updatePrompt();
+      });
+    }
+    
+    // Utility functions
+    function updatePrompt() {
+      const promptEl = document.querySelector('.input-line .prompt');
+      promptEl.innerHTML = `<span class="prompt-user">${state.user}</span><span class="prompt-at">@</span><span class="prompt-host">${state.host}</span>:<span class="prompt-path">${state.cwd}</span><span class="prompt-symbol">$</span>`;
+    }
+    
+    function addOutput(text, className = '') {
+      const line = document.createElement('div');
+      line.className = 'output-line' + (className ? ' ' + className : '');
+      line.textContent = text;
+      output.appendChild(line);
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+    
+    function addOutputHTML(html, className = '') {
+      const line = document.createElement('div');
+      line.className = 'output-line' + (className ? ' ' + className : '');
+      line.innerHTML = html;
+      output.appendChild(line);
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+    
+    function getCurrentDir() {
+      let current = state.fs['~'];
+      if (state.cwd === '~') return current;
+      
+      const parts = state.cwd.replace('~/', '').split('/').filter(p => p);
+      for (const part of parts) {
+        if (current.children && current.children[part]) {
+          current = current.children[part];
+        } else {
+          return null;
+        }
+      }
+      return current;
+    }
+    
+    function resolvePath(path) {
+      if (path.startsWith('~')) {
+        return path;
+      } else if (path.startsWith('/')) {
+        return path;
+      } else {
+        if (state.cwd === '~') {
+          return '~/' + path;
+        } else {
+          return state.cwd + '/' + path;
+        }
+      }
+    }
+    
+    // Commands
+    const commands = {
+      help: () => {
+        addOutput('Available commands:');
+        addOutput('  help          Show this help message');
+        addOutput('  ls [dir]      List directory contents');
+        addOutput('  cd <dir>      Change directory');
+        addOutput('  pwd           Print working directory');
+        addOutput('  cat <file>    Display file contents');
+        addOutput('  echo <text>   Print text');
+        addOutput('  env           Show environment variables');
+        addOutput('  whoami        Show current user');
+        addOutput('  date          Show current date/time');
+        addOutput('  clear         Clear terminal');
+        addOutput('  history       Show command history');
+        addOutput('  wallet        Show connected wallet');
+        addOutput('  neofetch      System information');
+        addOutput('  cowsay <msg>  Make a cow say something');
+        addOutput('  fortune       Random fortune');
+        addOutput('  matrix        Enter the matrix');
+        addOutput('  exit          Close terminal');
+      },
+      
+      ls: (args) => {
+        const dir = getCurrentDir();
+        if (!dir || !dir.children) {
+          addOutput('ls: cannot access: No such file or directory', 'error');
+          return;
+        }
+        
+        const entries = Object.keys(dir.children);
+        if (entries.length === 0) {
+          addOutput('(empty directory)', 'info');
+          return;
+        }
+        
+        let html = '';
+        for (const name of entries.sort()) {
+          const entry = dir.children[name];
+          const isDir = entry.type === 'dir';
+          const cls = isDir ? 'dir' : (name.endsWith('.sh') ? 'exec' : '');
+          html += `<span class="file-entry ${cls}">${name}${isDir ? '/' : ''}</span>`;
+        }
+        addOutputHTML(html);
+      },
+      
+      cd: (args) => {
+        const target = args[0] || '~';
+        
+        if (target === '~' || target === '') {
+          state.cwd = '~';
+          updatePrompt();
+          return;
+        }
+        
+        if (target === '..') {
+          if (state.cwd === '~') return;
+          const parts = state.cwd.split('/').filter(p => p);
+          parts.pop();
+          state.cwd = parts.length === 0 ? '~' : parts.join('/');
+          if (!state.cwd.startsWith('~')) state.cwd = '~/' + state.cwd;
+          updatePrompt();
+          return;
+        }
+        
+        // Try to find the directory
+        const dir = getCurrentDir();
+        if (dir && dir.children && dir.children[target]) {
+          if (dir.children[target].type === 'dir') {
+            state.cwd = state.cwd === '~' ? '~/' + target : state.cwd + '/' + target;
+            updatePrompt();
+          } else {
+            addOutput(`cd: ${target}: Not a directory`, 'error');
+          }
+        } else {
+          addOutput(`cd: ${target}: No such file or directory`, 'error');
+        }
+      },
+      
+      pwd: () => {
+        addOutput(state.cwd.replace('~', state.env.HOME));
+      },
+      
+      cat: (args) => {
+        if (!args[0]) {
+          addOutput('cat: missing file operand', 'error');
+          return;
+        }
+        
+        const dir = getCurrentDir();
+        const file = dir && dir.children && dir.children[args[0]];
+        
+        if (!file) {
+          addOutput(`cat: ${args[0]}: No such file or directory`, 'error');
+        } else if (file.type === 'dir') {
+          addOutput(`cat: ${args[0]}: Is a directory`, 'error');
+        } else {
+          addOutput(file.content || '');
+        }
+      },
+      
+      echo: (args) => {
+        const text = args.join(' ');
+        // Handle env variables
+        const expanded = text.replace(/\$(\w+)/g, (_, name) => state.env[name] || '');
+        addOutput(expanded);
+      },
+      
+      env: () => {
+        for (const [key, val] of Object.entries(state.env)) {
+          addOutput(`${key}=${val}`);
+        }
+      },
+      
+      whoami: () => {
+        addOutput(state.user);
+      },
+      
+      date: () => {
+        addOutput(new Date().toString());
+      },
+      
+      clear: () => {
+        output.innerHTML = '';
+      },
+      
+      history: () => {
+        state.history.forEach((cmd, i) => {
+          addOutput(`  ${i + 1}  ${cmd}`);
+        });
+      },
+      
+      wallet: () => {
+        if (state.env.WALLET) {
+          addOutput('Connected wallet: ' + state.env.WALLET, 'success');
+        } else {
+          addOutput('No wallet connected', 'warning');
+        }
+      },
+      
+      neofetch: () => {
+        addOutput('');
+        addOutput('       ████████         ' + state.user + '@' + state.host);
+        addOutput('     ██        ██       ─────────────────');
+        addOutput('   ██   ████   ██       OS: ClawdOS Mini');
+        addOutput('   ██   ████   ██       Host: Browser v1.0');
+        addOutput('   ██          ██       Kernel: JavaScript');
+        addOutput('     ██      ██         Shell: clawd-sh');
+        addOutput('       ██████           Terminal: ClawdOS Terminal');
+        addOutput('                        Memory: ∞');
+        addOutput('   🦞 ClawdOS           Wallet: ' + (state.env.WALLET ? state.env.WALLET.slice(0,10) + '...' : 'Not connected'));
+        addOutput('');
+      },
+      
+      cowsay: (args) => {
+        const msg = args.join(' ') || 'Moo!';
+        const border = '─'.repeat(msg.length + 2);
+        addOutput('');
+        addOutput(' ╭' + border + '╮');
+        addOutput(' │ ' + msg + ' │');
+        addOutput(' ╰' + border + '╯');
+        addOutput('        \\   ^__^');
+        addOutput('         \\  (oo)\\_______');
+        addOutput('            (__)\\       )\\/\\');
+        addOutput('                ||----w |');
+        addOutput('                ||     ||');
+        addOutput('');
+      },
+      
+      fortune: () => {
+        const fortunes = [
+          'A journey of a thousand miles begins with a single step.',
+          'The best time to plant a tree was 20 years ago. The second best time is now.',
+          'Your code will work perfectly... in production.',
+          'Today is a good day to ship something.',
+          'The bug is never where you think it is.',
+          'Backup your data. Trust me.',
+          'In the world of AI, curiosity is the greatest asset.',
+          'Every expert was once a beginner.',
+          'The only way to do great work is to love what you do.',
+          '42 is always the answer.'
+        ];
+        addOutput(fortunes[Math.floor(Math.random() * fortunes.length)]);
+      },
+      
+      matrix: () => {
+        addOutput('', 'success');
+        addOutput('Wake up, Neo...', 'success');
+        addOutput('The Matrix has you...', 'success');
+        addOutput('Follow the white rabbit. 🐇', 'success');
+        addOutput('');
+      },
+      
+      exit: () => {
+        addOutput('Goodbye!', 'info');
+        if (window.clawd) {
+          setTimeout(() => clawd.close(), 500);
+        }
+      }
+    };
+    
+    // Execute command
+    function executeCommand(cmdLine) {
+      cmdLine = cmdLine.trim();
+      if (!cmdLine) return;
+      
+      // Add to history
+      state.history.push(cmdLine);
+      state.historyIndex = state.history.length;
+      
+      // Show command in output
+      addOutput(`${state.user}@${state.host}:${state.cwd}$ ${cmdLine}`, 'command');
+      
+      // Parse command
+      const parts = cmdLine.split(/\s+/);
+      const cmd = parts[0].toLowerCase();
+      const args = parts.slice(1);
+      
+      // Execute
+      if (commands[cmd]) {
+        commands[cmd](args);
+      } else {
+        addOutput(`${cmd}: command not found`, 'error');
+        addOutput(`Type 'help' for available commands.`, 'info');
+      }
+      
+      // Update status
+      statusRight.textContent = state.cwd;
+    }
+    
+    // Event listeners
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const cmd = input.value;
+        input.value = '';
+        executeCommand(cmd);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (state.historyIndex > 0) {
+          state.historyIndex--;
+          input.value = state.history[state.historyIndex];
+        }
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (state.historyIndex < state.history.length - 1) {
+          state.historyIndex++;
+          input.value = state.history[state.historyIndex];
+        } else {
+          state.historyIndex = state.history.length;
+          input.value = '';
+        }
+      } else if (e.key === 'Tab') {
+        e.preventDefault();
+        // Simple tab completion for commands
+        const partial = input.value.toLowerCase();
+        const matches = Object.keys(commands).filter(c => c.startsWith(partial));
+        if (matches.length === 1) {
+          input.value = matches[0] + ' ';
+        } else if (matches.length > 1) {
+          addOutput(matches.join('  '), 'info');
+        }
+      } else if (e.key === 'c' && e.ctrlKey) {
+        input.value = '';
+        addOutput('^C', 'info');
+      } else if (e.key === 'l' && e.ctrlKey) {
+        e.preventDefault();
+        commands.clear();
+      }
+    });
+    
+    // Click anywhere to focus input
+    terminal.addEventListener('click', () => {
+      input.focus();
+    });
+    
+    clearBtn.addEventListener('click', () => {
+      commands.clear();
+    });
+    
+    copyBtn.addEventListener('click', () => {
+      const text = output.innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        statusLeft.textContent = 'Copied to clipboard!';
+        setTimeout(() => {
+          statusLeft.textContent = 'Ready';
+        }, 2000);
+      });
+    });
+    
+    // Focus on load
+    input.focus();
+    
+    // Update window title
+    if (window.clawd) {
+      clawd.setTitle('Terminal');
+    }
+  </script>
+</body>
+</html>

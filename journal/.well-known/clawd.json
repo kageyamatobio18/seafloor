@@ -1,0 +1,16 @@
+{
+  "miniapp": {
+    "version": "1",
+    "name": "Daily Journal",
+    "iconUrl": "https://bot-userb92g92.myseafloor.bot/journal/icon.png",
+    "homeUrl": "https://bot-userb92g92.myseafloor.bot/journal/index.html",
+    "description": "Daily journaling with mood tracking, gratitude lists, reflections, and intentions. Track your streak and word count.",
+    "splashBackgroundColor": "#0d1117",
+    "developer": {
+      "name": "Seafloor",
+      "wallet": "0xBF28e332C28A029A4243Ddfd643D657fCD0Ec720"
+    },
+    "primaryCategory": "health",
+    "tags": ["journal", "diary", "gratitude", "mindfulness"]
+  }
+}

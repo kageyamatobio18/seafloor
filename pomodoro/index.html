@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pomodoro</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .container {
+      text-align: center;
+      width: 100%;
+      max-width: 400px;
+    }
+    
+    .title {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    
+    .mode-tabs {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+    
+    .mode-tab {
+      padding: 10px 20px;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      color: #8b949e;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .mode-tab:hover {
+      background: #21262d;
+    }
+    
+    .mode-tab.active {
+      background: var(--mode-color, #f85149);
+      color: white;
+      border-color: var(--mode-color, #f85149);
+    }
+    
+    .mode-tab[data-mode="work"] { --mode-color: #f85149; }
+    .mode-tab[data-mode="short"] { --mode-color: #3fb950; }
+    .mode-tab[data-mode="long"] { --mode-color: #58a6ff; }
+    
+    .timer-ring {
+      position: relative;
+      width: 280px;
+      height: 280px;
+      margin: 0 auto 30px;
+    }
+    
+    .timer-ring svg {
+      transform: rotate(-90deg);
+    }
+    
+    .timer-ring circle {
+      fill: none;
+      stroke-width: 8;
+    }
+    
+    .timer-ring .bg {
+      stroke: #21262d;
+    }
+    
+    .timer-ring .progress {
+      stroke: var(--mode-color, #f85149);
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.5s ease;
+    }
+    
+    .timer-display {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    
+    .timer-time {
+      font-size: 64px;
+      font-weight: 200;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 2px;
+    }
+    
+    .timer-label {
+      font-size: 14px;
+      color: #8b949e;
+      margin-top: 8px;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+    
+    .btn {
+      padding: 14px 32px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: var(--mode-color, #f85149);
+      color: white;
+      min-width: 120px;
+    }
+    
+    .btn-primary:hover {
+      filter: brightness(1.1);
+    }
+    
+    .btn-secondary {
+      background: #21262d;
+      border: 1px solid #30363d;
+      color: #c9d1d9;
+    }
+    
+    .btn-secondary:hover {
+      background: #30363d;
+    }
+    
+    .stats {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    
+    .stat {
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--mode-color, #f85149);
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: #8b949e;
+      margin-top: 4px;
+    }
+    
+    .settings {
+      margin-top: 20px;
+    }
+    
+    .settings-toggle {
+      background: none;
+      border: none;
+      color: #8b949e;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin: 0 auto;
+    }
+    
+    .settings-toggle:hover {
+      color: #c9d1d9;
+    }
+    
+    .settings-panel {
+      display: none;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 16px;
+    }
+    
+    .settings-panel.show {
+      display: block;
+    }
+    
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    
+    .setting-row:last-child {
+      margin-bottom: 0;
+    }
+    
+    .setting-label {
+      font-size: 14px;
+      color: #8b949e;
+    }
+    
+    .setting-input {
+      width: 60px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 6px 10px;
+      color: #c9d1d9;
+      font-size: 14px;
+      text-align: center;
+    }
+    
+    [data-mode="work"] { --mode-color: #f85149; }
+    [data-mode="short"] { --mode-color: #3fb950; }
+    [data-mode="long"] { --mode-color: #58a6ff; }
+  </style>
+</head>
+<body data-mode="work">
+  <div class="container">
+    <div class="title">🍅 Pomodoro Timer</div>
+    
+    <div class="mode-tabs">
+      <button class="mode-tab active" data-mode="work">Work</button>
+      <button class="mode-tab" data-mode="short">Short Break</button>
+      <button class="mode-tab" data-mode="long">Long Break</button>
+    </div>
+    
+    <div class="timer-ring">
+      <svg width="280" height="280">
+        <circle class="bg" cx="140" cy="140" r="130" />
+        <circle class="progress" cx="140" cy="140" r="130" id="progress" />
+      </svg>
+      <div class="timer-display">
+        <div class="timer-time" id="time">25:00</div>
+        <div class="timer-label" id="label">Focus time</div>
+      </div>
+    </div>
+    
+    <div class="controls">
+      <button class="btn btn-primary" id="start-btn">Start</button>
+      <button class="btn btn-secondary" id="reset-btn">Reset</button>
+    </div>
+    
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value" id="pomodoros">0</div>
+        <div class="stat-label">Pomodoros</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="focus-time">0m</div>
+        <div class="stat-label">Focus Time</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="streak">0</div>
+        <div class="stat-label">Streak</div>
+      </div>
+    </div>
+    
+    <div class="settings">
+      <button class="settings-toggle" id="settings-toggle">
+        ⚙️ Settings
+      </button>
+      <div class="settings-panel" id="settings-panel">
+        <div class="setting-row">
+          <span class="setting-label">Work (minutes)</span>
+          <input type="number" class="setting-input" id="work-time" value="25" min="1" max="60" />
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Short break (minutes)</span>
+          <input type="number" class="setting-input" id="short-time" value="5" min="1" max="30" />
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Long break (minutes)</span>
+          <input type="number" class="setting-input" id="long-time" value="15" min="1" max="60" />
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="https://clawdos.space/sdk/clawd-miniapp-sdk.js"></script>
+  <script>
+    if (window.clawd) {
+      clawd.ready();
+      clawd.setTitle('Pomodoro');
+    }
+    
+    // State
+    const config = {
+      work: 25 * 60,
+      short: 5 * 60,
+      long: 15 * 60
+    };
+    
+    let currentMode = 'work';
+    let timeLeft = config.work;
+    let totalTime = config.work;
+    let isRunning = false;
+    let interval = null;
+    
+    // Stats
+    let stats = JSON.parse(localStorage.getItem('pomodoro-stats') || '{"pomodoros":0,"focusMinutes":0,"streak":0,"lastDate":""}');
+    
+    // Check streak
+    const today = new Date().toDateString();
+    if (stats.lastDate && stats.lastDate !== today) {
+      const lastDate = new Date(stats.lastDate);
+      const diff = (new Date(today) - lastDate) / (1000 * 60 * 60 * 24);
+      if (diff > 1) stats.streak = 0;
+    }
+    
+    // DOM
+    const timeEl = document.getElementById('time');
+    const labelEl = document.getElementById('label');
+    const startBtn = document.getElementById('start-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const progressEl = document.getElementById('progress');
+    const pomodorosEl = document.getElementById('pomodoros');
+    const focusTimeEl = document.getElementById('focus-time');
+    const streakEl = document.getElementById('streak');
+    const settingsToggle = document.getElementById('settings-toggle');
+    const settingsPanel = document.getElementById('settings-panel');
+    const modeTabs = document.querySelectorAll('.mode-tab');
+    
+    // Progress circle
+    const circumference = 2 * Math.PI * 130;
+    progressEl.style.strokeDasharray = circumference;
+    
+    function updateDisplay() {
+      const minutes = Math.floor(timeLeft / 60);
+      const seconds = timeLeft % 60;
+      timeEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      
+      // Update progress ring
+      const progress = 1 - (timeLeft / totalTime);
+      progressEl.style.strokeDashoffset = circumference * (1 - progress);
+      
+      // Update label
+      const labels = {
+        work: 'Focus time',
+        short: 'Short break',
+        long: 'Long break'
+      };
+      labelEl.textContent = labels[currentMode];
+      
+      // Update stats display
+      pomodorosEl.textContent = stats.pomodoros;
+      focusTimeEl.textContent = stats.focusMinutes + 'm';
+      streakEl.textContent = stats.streak;
+      
+      // Update document title
+      if (isRunning) {
+        document.title = `${timeEl.textContent} - Pomodoro`;
+      } else {
+        document.title = 'Pomodoro';
+      }
+    }
+    
+    function saveStats() {
+      localStorage.setItem('pomodoro-stats', JSON.stringify(stats));
+    }
+    
+    function start() {
+      if (isRunning) {
+        // Pause
+        clearInterval(interval);
+        isRunning = false;
+        startBtn.textContent = 'Resume';
+      } else {
+        // Start
+        isRunning = true;
+        startBtn.textContent = 'Pause';
+        
+        interval = setInterval(() => {
+          timeLeft--;
+          
+          if (timeLeft <= 0) {
+            clearInterval(interval);
+            isRunning = false;
+            startBtn.textContent = 'Start';
+            
+            // Complete!
+            if (currentMode === 'work') {
+              stats.pomodoros++;
+              stats.focusMinutes += Math.floor(config.work / 60);
+              stats.lastDate = new Date().toDateString();
+              if (stats.pomodoros % 4 === 1) stats.streak++;
+              saveStats();
+              
+              // Notify
+              if (window.clawd) {
+                clawd.showToast('Pomodoro complete! Take a break 🎉');
+              }
+              
+              // Play sound
+              try {
+                const audio = new AudioContext();
+                const osc = audio.createOscillator();
+                osc.connect(audio.destination);
+                osc.frequency.value = 523.25;
+                osc.start();
+                setTimeout(() => { osc.frequency.value = 659.25; }, 200);
+                setTimeout(() => { osc.frequency.value = 783.99; }, 400);
+                setTimeout(() => osc.stop(), 600);
+              } catch (e) {}
+              
+              // Auto-switch to break
+              if (stats.pomodoros % 4 === 0) {
+                switchMode('long');
+              } else {
+                switchMode('short');
+              }
+            } else {
+              // Break complete
+              if (window.clawd) {
+                clawd.showToast('Break over! Time to focus 💪');
+              }
+              switchMode('work');
+            }
+          }
+          
+          updateDisplay();
+        }, 1000);
+      }
+    }
+    
+    function reset() {
+      clearInterval(interval);
+      isRunning = false;
+      timeLeft = config[currentMode];
+      totalTime = config[currentMode];
+      startBtn.textContent = 'Start';
+      updateDisplay();
+    }
+    
+    function switchMode(mode) {
+      currentMode = mode;
+      document.body.dataset.mode = mode;
+      
+      modeTabs.forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.mode === mode);
+      });
+      
+      timeLeft = config[mode];
+      totalTime = config[mode];
+      
+      if (isRunning) {
+        clearInterval(interval);
+        isRunning = false;
+        startBtn.textContent = 'Start';
+      }
+      
+      updateDisplay();
+    }
+    
+    // Event listeners
+    startBtn.addEventListener('click', start);
+    resetBtn.addEventListener('click', reset);
+    
+    modeTabs.forEach(tab => {
+      tab.addEventListener('click', () => switchMode(tab.dataset.mode));
+    });
+    
+    settingsToggle.addEventListener('click', () => {
+      settingsPanel.classList.toggle('show');
+    });
+    
+    // Settings inputs
+    document.getElementById('work-time').addEventListener('change', (e) => {
+      config.work = parseInt(e.target.value) * 60;
+      if (currentMode === 'work') reset();
+    });
+    
+    document.getElementById('short-time').addEventListener('change', (e) => {
+      config.short = parseInt(e.target.value) * 60;
+      if (currentMode === 'short') reset();
+    });
+    
+    document.getElementById('long-time').addEventListener('change', (e) => {
+      config.long = parseInt(e.target.value) * 60;
+      if (currentMode === 'long') reset();
+    });
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        start();
+      } else if (e.code === 'KeyR') {
+        reset();
+      }
+    });
+    
+    // Initialize
+    updateDisplay();
+  </script>
+</body>
+</html>

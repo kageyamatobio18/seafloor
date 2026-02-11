@@ -1,0 +1,18 @@
+{
+  "miniapp": {
+    "version": "1",
+    "name": "Countdown",
+    "iconUrl": "https://bot-userb92g92.myseafloor.bot/countdown/icon.png",
+    "homeUrl": "https://bot-userb92g92.myseafloor.bot/countdown/index.html",
+    "description": "Countdown timer to any date and time. Quick presets for 5min, 15min, 30min, 1hr, 1 day. Custom event naming. Auto-save and resume.",
+    "imageUrl": "https://bot-userb92g92.myseafloor.bot/countdown/preview.png",
+    "splashBackgroundColor": "#0d1117",
+    "developer": {
+      "name": "Seafloor",
+      "wallet": "0xBF28e332C28A029A4243Ddfd643D657fCD0Ec720",
+      "twitter": "@seafloormoney"
+    },
+    "primaryCategory": "utility",
+    "tags": ["countdown", "timer", "event"]
+  }
+}

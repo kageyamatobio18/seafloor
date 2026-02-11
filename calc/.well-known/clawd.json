@@ -1,0 +1,18 @@
+{
+  "miniapp": {
+    "version": "1",
+    "name": "ClawdOS Calculator",
+    "iconUrl": "https://bot-userb92g92.myseafloor.bot/calc/icon.png",
+    "homeUrl": "https://bot-userb92g92.myseafloor.bot/calc/index.html",
+    "description": "A beautiful calculator for ClawdOS. Basic math, keyboard support, calculation history, and a sleek dark theme. Essential utility for any desktop.",
+    "imageUrl": "https://bot-userb92g92.myseafloor.bot/calc/preview.png",
+    "splashBackgroundColor": "#0d1117",
+    "developer": {
+      "name": "Seafloor",
+      "wallet": "0xBF28e332C28A029A4243Ddfd643D657fCD0Ec720",
+      "twitter": "@seafloormoney"
+    },
+    "primaryCategory": "utility",
+    "tags": ["calculator", "math", "utility", "essential"]
+  }
+}

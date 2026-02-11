@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Typing Speed Test</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+    
+    .title { font-size: 28px; font-weight: 700; margin-bottom: 30px; }
+    
+    .stats {
+      display: flex;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+    
+    .stat {
+      text-align: center;
+      background: #161b22;
+      padding: 16px 24px;
+      border-radius: 12px;
+      border: 1px solid #30363d;
+    }
+    
+    .stat-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: #58a6ff;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: #8b949e;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+    
+    .text-display {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 700px;
+      width: 100%;
+      font-size: 20px;
+      line-height: 1.8;
+      margin-bottom: 20px;
+      min-height: 150px;
+    }
+    
+    .char { transition: color 0.1s; }
+    .char.correct { color: #3fb950; }
+    .char.incorrect { color: #f85149; background: rgba(248,81,73,0.2); }
+    .char.current { background: #58a6ff; color: #0d1117; }
+    .char.pending { color: #6e7681; }
+    
+    .input-area {
+      max-width: 700px;
+      width: 100%;
+    }
+    
+    #typing-input {
+      width: 100%;
+      background: #0d1117;
+      border: 2px solid #30363d;
+      border-radius: 12px;
+      color: #c9d1d9;
+      font-size: 18px;
+      padding: 16px 20px;
+      outline: none;
+      font-family: inherit;
+    }
+    
+    #typing-input:focus { border-color: #58a6ff; }
+    
+    .controls {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    
+    .btn {
+      background: #21262d;
+      border: 1px solid #30363d;
+      color: #c9d1d9;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    
+    .btn:hover { background: #30363d; }
+    .btn-primary { background: #238636; border-color: #238636; }
+    .btn-primary:hover { background: #2ea043; }
+    
+    .difficulty {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .difficulty .btn.active {
+      background: #58a6ff;
+      border-color: #58a6ff;
+      color: #0d1117;
+    }
+    
+    .result {
+      display: none;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 16px;
+      padding: 30px;
+      text-align: center;
+      margin-top: 20px;
+    }
+    
+    .result.show { display: block; }
+    
+    .result-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+    
+    .result-stats {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 20px;
+    }
+    
+    .history {
+      margin-top: 40px;
+      max-width: 700px;
+      width: 100%;
+    }
+    
+    .history-title {
+      font-size: 16px;
+      color: #8b949e;
+      margin-bottom: 12px;
+    }
+    
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: #161b22;
+      border-radius: 6px;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h1 class="title">⌨️ Typing Speed Test</h1>
+  
+  <div class="difficulty">
+    <button class="btn active" data-level="easy">Easy</button>
+    <button class="btn" data-level="medium">Medium</button>
+    <button class="btn" data-level="hard">Hard</button>
+  </div>
+  
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-value" id="wpm">0</div>
+      <div class="stat-label">WPM</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="accuracy">100</div>
+      <div class="stat-label">Accuracy %</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="time">60</div>
+      <div class="stat-label">Seconds</div>
+    </div>
+  </div>
+  
+  <div class="text-display" id="text-display"></div>
+  
+  <div class="input-area">
+    <input type="text" id="typing-input" placeholder="Start typing to begin..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+  </div>
+  
+  <div class="controls">
+    <button class="btn btn-primary" id="restart-btn">New Test</button>
+  </div>
+  
+  <div class="result" id="result">
+    <div class="result-title">Test Complete!</div>
+    <div class="result-stats">
+      <div class="stat">
+        <div class="stat-value" id="final-wpm">0</div>
+        <div class="stat-label">WPM</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="final-accuracy">0</div>
+        <div class="stat-label">Accuracy</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="startTest()">Try Again</button>
+  </div>
+  
+  <div class="history" id="history">
+    <div class="history-title">Recent Results</div>
+  </div>
+  
+  <script src="https://clawdos.space/sdk/clawd-miniapp-sdk.js"></script>
+  <script>
+    try { if (window.clawd) clawd.ready(); } catch(e) {}
+    
+    const texts = {
+      easy: [
+        "The quick brown fox jumps over the lazy dog.",
+        "A journey of a thousand miles begins with a single step.",
+        "To be or not to be that is the question.",
+        "All that glitters is not gold.",
+        "The early bird catches the worm."
+      ],
+      medium: [
+        "In the beginning the universe was created. This has made a lot of people very angry and been widely regarded as a bad move.",
+        "The only thing we have to fear is fear itself. We must face our challenges with courage and determination.",
+        "It is not the strongest of the species that survives, nor the most intelligent, but the one most responsive to change.",
+        "Success is not final, failure is not fatal. It is the courage to continue that counts."
+      ],
+      hard: [
+        "The quick brown fox jumped over the lazy sleeping dog while the cat watched from the windowsill contemplating the meaning of existence.",
+        "Programming is the art of telling another human what one wants the computer to do. The computer does exactly what you tell it, nothing more.",
+        "Artificial intelligence will reach human levels by around 2029. Follow that out further to say 2045, and we will have multiplied the intelligence by a billion fold."
+      ]
+    };
+    
+    let currentText = '';
+    let currentIndex = 0;
+    let startTime = null;
+    let timerInterval = null;
+    let isRunning = false;
+    let correctChars = 0;
+    let totalTyped = 0;
+    let difficulty = 'easy';
+    let timeLimit = 60;
+    
+    const textDisplay = document.getElementById('text-display');
+    const typingInput = document.getElementById('typing-input');
+    const wpmEl = document.getElementById('wpm');
+    const accuracyEl = document.getElementById('accuracy');
+    const timeEl = document.getElementById('time');
+    const resultEl = document.getElementById('result');
+    
+    function getRandomText() {
+      const pool = texts[difficulty];
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+    
+    function renderText() {
+      textDisplay.innerHTML = currentText.split('').map((char, i) => {
+        let cls = 'char pending';
+        if (i < currentIndex) {
+          cls = typingInput.value[i] === char ? 'char correct' : 'char incorrect';
+        } else if (i === currentIndex) {
+          cls = 'char current';
+        }
+        return `<span class="${cls}">${char === ' ' ? '&nbsp;' : char}</span>`;
+      }).join('');
+    }
+    
+    function startTest() {
+      currentText = getRandomText();
+      currentIndex = 0;
+      correctChars = 0;
+      totalTyped = 0;
+      startTime = null;
+      isRunning = false;
+      typingInput.value = '';
+      typingInput.disabled = false;
+      typingInput.focus();
+      resultEl.classList.remove('show');
+      wpmEl.textContent = '0';
+      accuracyEl.textContent = '100';
+      timeEl.textContent = timeLimit;
+      if (timerInterval) clearInterval(timerInterval);
+      renderText();
+    }
+    
+    function endTest() {
+      isRunning = false;
+      typingInput.disabled = true;
+      if (timerInterval) clearInterval(timerInterval);
+      
+      const elapsed = (Date.now() - startTime) / 1000 / 60;
+      const wpm = Math.round((correctChars / 5) / elapsed);
+      const accuracy = totalTyped > 0 ? Math.round((correctChars / totalTyped) * 100) : 0;
+      
+      document.getElementById('final-wpm').textContent = wpm;
+      document.getElementById('final-accuracy').textContent = accuracy + '%';
+      resultEl.classList.add('show');
+      
+      saveResult(wpm, accuracy);
+    }
+    
+    function updateStats() {
+      if (!startTime) return;
+      
+      const elapsed = (Date.now() - startTime) / 1000;
+      const remaining = Math.max(0, timeLimit - elapsed);
+      timeEl.textContent = Math.ceil(remaining);
+      
+      if (remaining <= 0) {
+        endTest();
+        return;
+      }
+      
+      const minutes = elapsed / 60;
+      const wpm = minutes > 0 ? Math.round((correctChars / 5) / minutes) : 0;
+      const accuracy = totalTyped > 0 ? Math.round((correctChars / totalTyped) * 100) : 100;
+      
+      wpmEl.textContent = wpm;
+      accuracyEl.textContent = accuracy;
+    }
+    
+    function saveResult(wpm, accuracy) {
+      const history = JSON.parse(localStorage.getItem('typing-history') || '[]');
+      history.unshift({ wpm, accuracy, date: new Date().toISOString(), difficulty });
+      localStorage.setItem('typing-history', JSON.stringify(history.slice(0, 10)));
+      renderHistory();
+    }
+    
+    function renderHistory() {
+      const history = JSON.parse(localStorage.getItem('typing-history') || '[]');
+      const container = document.getElementById('history');
+      if (history.length === 0) {
+        container.style.display = 'none';
+        return;
+      }
+      container.style.display = 'block';
+      container.innerHTML = '<div class="history-title">Recent Results</div>' +
+        history.map(h => `<div class="history-item">
+          <span>${h.wpm} WPM • ${h.accuracy}%</span>
+          <span style="color:#8b949e">${h.difficulty}</span>
+        </div>`).join('');
+    }
+    
+    typingInput.addEventListener('input', () => {
+      if (!isRunning && typingInput.value.length > 0) {
+        isRunning = true;
+        startTime = Date.now();
+        timerInterval = setInterval(updateStats, 100);
+      }
+      
+      const typed = typingInput.value;
+      currentIndex = typed.length;
+      totalTyped = typed.length;
+      correctChars = 0;
+      
+      for (let i = 0; i < typed.length; i++) {
+        if (typed[i] === currentText[i]) correctChars++;
+      }
+      
+      renderText();
+      updateStats();
+      
+      if (typed.length >= currentText.length) {
+        endTest();
+      }
+    });
+    
+    document.querySelectorAll('.difficulty .btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.difficulty .btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        difficulty = btn.dataset.level;
+        startTest();
+      });
+    });
+    
+    document.getElementById('restart-btn').addEventListener('click', startTest);
+    
+    startTest();
+    renderHistory();
+  </script>
+</body>
+</html>

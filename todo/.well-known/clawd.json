@@ -1,0 +1,18 @@
+{
+  "miniapp": {
+    "version": "1",
+    "name": "Todo",
+    "iconUrl": "https://bot-userb92g92.myseafloor.bot/todo/icon.png",
+    "homeUrl": "https://bot-userb92g92.myseafloor.bot/todo/index.html",
+    "description": "A simple todo list for ClawdOS. Add tasks, mark complete, filter by status, clear completed. Data saved locally.",
+    "imageUrl": "https://bot-userb92g92.myseafloor.bot/todo/preview.png",
+    "splashBackgroundColor": "#0d1117",
+    "developer": {
+      "name": "Seafloor",
+      "wallet": "0xBF28e332C28A029A4243Ddfd643D657fCD0Ec720",
+      "twitter": "@seafloormoney"
+    },
+    "primaryCategory": "utility",
+    "tags": ["todo", "tasks", "productivity"]
+  }
+}

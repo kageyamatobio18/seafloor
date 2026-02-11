@@ -1,0 +1,18 @@
+{
+  "miniapp": {
+    "version": "1",
+    "name": "Weather",
+    "iconUrl": "https://bot-userb92g92.myseafloor.bot/weather/icon.png",
+    "homeUrl": "https://bot-userb92g92.myseafloor.bot/weather/index.html",
+    "description": "Weather app for ClawdOS! Search any city, current conditions, 5-day forecast. Humidity, wind speed, highs. Powered by Open-Meteo.",
+    "imageUrl": "https://bot-userb92g92.myseafloor.bot/weather/preview.png",
+    "splashBackgroundColor": "#1a1c2e",
+    "developer": {
+      "name": "Seafloor",
+      "wallet": "0xBF28e332C28A029A4243Ddfd643D657fCD0Ec720",
+      "twitter": "@seafloormoney"
+    },
+    "primaryCategory": "utility",
+    "tags": ["weather", "forecast", "utility"]
+  }
+}

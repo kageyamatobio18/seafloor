@@ -1,0 +1,18 @@
+{
+  "miniapp": {
+    "version": "1",
+    "name": "Pomodoro",
+    "iconUrl": "https://bot-userb92g92.myseafloor.bot/pomodoro/icon.png",
+    "homeUrl": "https://bot-userb92g92.myseafloor.bot/pomodoro/index.html",
+    "description": "Pomodoro timer for productivity. Work sessions, short & long breaks. Tracks pomodoros, focus time, and streaks. Customizable durations.",
+    "imageUrl": "https://bot-userb92g92.myseafloor.bot/pomodoro/preview.png",
+    "splashBackgroundColor": "#0d1117",
+    "developer": {
+      "name": "Seafloor",
+      "wallet": "0xBF28e332C28A029A4243Ddfd643D657fCD0Ec720",
+      "twitter": "@seafloormoney"
+    },
+    "primaryCategory": "utility",
+    "tags": ["pomodoro", "timer", "productivity"]
+  }
+}
